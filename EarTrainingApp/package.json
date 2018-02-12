@@ -10,6 +10,7 @@
     "name": "Pnctsrc"
   },
   "dependencies": {
+    "async": "^2.6.0",
     "body-parser": "^1.15.0",
     "cookie-parser": "^1.4.0",
     "debug": "^2.6.9",
