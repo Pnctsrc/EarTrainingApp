@@ -14,15 +14,20 @@ block content
   if the_skill.sub_skills.length != 0
     p
       b Sub-skill list
+
+    ul
+    each sub_skill in the_skill.sub_skills
+      li
+        a(href=sub_skill.url) #{sub_skill.name} 
+        p.sub_skill_description #{sub_skill.description}
   else
     p
-      b Question list
+      b Exercise list
 
-  ul
-  each sub_skill in the_skill.sub_skills
-    li
-      a(href=sub_skill.url) #{sub_skill.name} 
-      p.sub_skill_description #{sub_skill.description}
-
-  else
-    li Questions show up here.
+    ul
+      li
+        a(href=the_skill.url + '/questions/basic') Basic exercises.
+      li
+        a(href=the_skill.url + '/questions/intermediate') Intermediate exercises.
+      li
+        a(href=the_skill.url + '/questions/advanced') Advanced exercises.

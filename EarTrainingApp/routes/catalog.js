@@ -29,6 +29,9 @@ router.get('/skill/:id/update', skill_controller.skill_update_get);
 // POST request to update Skill.
 router.post('/skill/:id/update', skill_controller.skill_update_post);
 
+// GET request for a particular level of questions of the Skill.
+router.get('/skill/:id/questions/:level', question_controller.question_for_skill);
+
 // GET request for one Skill.
 router.get('/skill/:id', skill_controller.skill_detail);
 

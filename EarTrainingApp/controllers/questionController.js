@@ -10,6 +10,11 @@ exports.question_detail = function (req, res) {
     res.send('NOT IMPLEMENTED: Question detail: ' + req.params.id);
 };
 
+//Display questions for a specific Skill.
+exports.question_for_skill = function (req, res, next) {
+    res.send('NOT IMPLEMENTED: Question for skill');
+}
+
 // Display Question create form on GET.
 exports.question_create_get = function (req, res) {
     res.send('NOT IMPLEMENTED: Question create GET');
