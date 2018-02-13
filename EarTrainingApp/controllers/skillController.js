@@ -21,8 +21,13 @@ exports.index = function (req, res) {
 };
 
 // Display list of all Skills.
-exports.skill_list = function (req, res) {
-	res.send('NOT IMPLEMENTED: Skill list');
+exports.skill_list = function (req, res, next) {
+    Skill.find({}, 'name parent description')
+        .exec(function (err, skill_list) {
+            if (err) { return next(err); }
+            //Successful, so render
+            res.render('skill_list', { title: 'Skill List', skill_list: skill_list });
+        });
 };
 
 // Display detail page for a specific Skill.
