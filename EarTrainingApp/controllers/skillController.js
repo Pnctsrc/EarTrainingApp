@@ -3,6 +3,7 @@ var Question = require('../models/question');
 var Option = require('../models/option');
 
 var async = require('async');
+var mongoose = require('mongoose');
 
 exports.index = function (req, res) {
     async.parallel({
@@ -32,7 +33,15 @@ exports.skill_list = function (req, res, next) {
 
 // Display detail page for a specific Skill.
 exports.skill_detail = function (req, res) {
-	res.send('NOT IMPLEMENTED: Skill detail: ' + req.params.id);
+    var skill_id = mongoose.Types.ObjectId(req.params.id); 
+
+    Skill.findById(skill_id, 'name description parent')
+        .populate('sub_skills')
+        .exec(function (err, the_skill) {
+            if (err) { return next(err); }
+
+            res.render('skill_detail', { title: 'Skill Detail', the_skill: the_skill });
+        });
 };
 
 // Display Skill create form on GET.

@@ -1,0 +1,28 @@
+extends layout
+
+block content 
+  h1 Skill
+    |  - #{the_skill.name}
+
+  hr
+  p 
+    b Skill description
+  p #{the_skill.description}
+
+  hr
+
+  if the_skill.sub_skills.length != 0
+    p
+      b Sub-skill list
+  else
+    p
+      b Question list
+
+  ul
+  each sub_skill in the_skill.sub_skills
+    li
+      a(href=sub_skill.url) #{sub_skill.name} 
+      p.sub_skill_description #{sub_skill.description}
+
+  else
+    li Questions show up here.
