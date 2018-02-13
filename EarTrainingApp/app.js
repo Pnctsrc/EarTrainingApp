@@ -1,5 +1,4 @@
-﻿'use strict';
-var debug = require('debug');
+﻿var debug = require('debug');
 var express = require('express');
 var path = require('path');
 var favicon = require('serve-favicon');
@@ -16,6 +15,7 @@ var app = express();
 //Set up mongoose connection
 var mongoose = require('mongoose');
 var mongoDB = process.env.MONGO_URI;
+mongoose.connect(mongoDB);
 mongoose.Promise = global.Promise;
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
