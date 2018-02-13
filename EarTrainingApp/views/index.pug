@@ -2,4 +2,16 @@
 
 block content
   h1= title
-  p Welcome to #{title}
+  p Welcome to #[em EarTraining], an web application that helps you develop the ability to listen to polyphonic music.
+
+  h1 Dynamic content
+
+  if error
+    p Error getting dynamic content.
+  else
+    p The database has the following record counts:
+
+    ul
+      li #[strong Skills:] !{data.skill_count}
+      li #[strong Questions:] !{data.question_count}
+      li #[strong Options:] !{data.option_count} 

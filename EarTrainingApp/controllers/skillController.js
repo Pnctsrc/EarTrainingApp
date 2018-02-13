@@ -1,7 +1,23 @@
 var Skill = require('../models/skill');
+var Question = require('../models/question');
+var Option = require('../models/option');
+
+var async = require('async');
 
 exports.index = function (req, res) {
-    res.send('NOT IMPLEMENTED: Site Home Page');
+    async.parallel({
+        skill_count: function (callback) {
+            Skill.count(callback);
+        },
+        question_count: function (callback) {
+            Question.count(callback);
+        },
+        option_count: function (callback) {
+            Option.count(callback);
+        },
+    }, function (err, results) {
+        res.render('index', { title: 'EarTraining Home', error: err, data: results });
+    });
 };
 
 // Display list of all Skills.
