@@ -1,18 +1,48 @@
 var Question = require('../models/question');
 
+var mongoose = require('mongoose');
+var async = require('async');
+
 // Display list of all Questions.
 exports.question_list = function (req, res) {
     res.send('NOT IMPLEMENTED: Question list');
 };
 
 // Display detail page for a specific Question.
-exports.question_detail = function (req, res) {
-    res.send('NOT IMPLEMENTED: Question detail: ' + req.params.id);
+exports.question_detail = function (req, res, next) {
+    var question_id = mongoose.Types.ObjectId(req.params.id);
+
+    Question.findById(question_id)
+        .populate('options')
+        .populate('skill', 'name url')
+        .exec(function(err, question) {
+            if (err) next(err);
+
+            if (question) {
+                res.render('question_detail', {question: question, options: question.options});
+            } else {
+                next();
+            }
+        })
 };
 
 //Display questions for a specific Skill.
 exports.question_for_skill = function (req, res, next) {
-    res.send('NOT IMPLEMENTED: Question for skill');
+    var skill_id = mongoose.Types.ObjectId(req.params.id);
+    var question_level = req.params.level;
+
+    Question.findOne({ difficulty: question_level, skill: skill_id }, '_id')
+        .populate('skill')
+        .exec(function (err, question) {
+            if (err) next(err);
+
+            if (question) {
+                res.redirect(question.url);
+            } else {
+                //if no questions found, stay on the same page
+                res.redirect('/catalog/skill/' + skill_id);
+            }
+        })
 }
 
 // Display Question create form on GET.

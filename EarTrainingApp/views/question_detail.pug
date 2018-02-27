@@ -1,0 +1,29 @@
+extends layout
+
+block content 
+  h1 Question for skill - 
+    a(href=question.skill.url) #{question.skill.name}
+
+  hr
+  p 
+    b Question text
+  p!= question.html
+
+  hr
+  
+  - if (options.length)
+    p
+      b Options
+
+    form(method='GET' action='')
+      div.form-group
+        - for (var i = 0; i < options.length; i++)
+          div.form-check
+            input.form-check-input(type='radio' name='options' id='option'+i value=i)
+            label.form-check-label(for='option'+i style='font-weight:unset')
+              | !{options[i].text}
+
+      button.btn.btn-primary(type='submit') Submit
+  - else
+    p
+      b No options to display
