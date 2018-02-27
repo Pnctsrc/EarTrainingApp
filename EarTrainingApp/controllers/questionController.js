@@ -1,4 +1,5 @@
 var Question = require('../models/question');
+var Option = require('../models/option');
 
 var mongoose = require('mongoose');
 var async = require('async');
@@ -12,18 +13,69 @@ exports.question_list = function (req, res) {
 exports.question_detail = function (req, res, next) {
     var question_id = mongoose.Types.ObjectId(req.params.id);
 
-    Question.findById(question_id)
-        .populate('options')
-        .populate('skill', 'name url')
-        .exec(function(err, question) {
-            if (err) next(err);
+    //if the user has made a choice
+    if (req.query.options !== undefined) {
+        async.parallel({
+            question: function (callback) {
+                Question.findById(question_id)
+                    .populate('options', 'category audio picture text correct _id')
+                    .populate('skill', 'name url')
+                    .exec(function (err, question) {
+                        if (err) {
+                            callback(err, question);
+                            return;
+                        }
 
-            if (question) {
-                res.render('question_detail', {question: question, options: question.options});
-            } else {
-                next();
+                        if (question) {
+                            callback(null, question)
+                        } else {
+                            next();
+                        }
+                    })
+            },
+            current_option_id: function (callback) {
+                var current_option_id = mongoose.Types.ObjectId(req.query.options);
+
+                //check if the option exists
+                Option.findById(current_option_id, function (err, option) {
+                    if (err) {
+                        callback(err, null);
+                        return;
+                    }
+
+                    if (option) {
+                        callback(null, current_option_id)
+                    } else {
+                        next();
+                    }
+                })
             }
+        }, function (err, results) {
+            for (let option of results.question.options) {
+                var option_id = mongoose.Types.ObjectId(option._id);
+
+                if (results.current_option_id.equals(option_id)) {
+                    option.if_correct = option.correct;
+                    option.if_checked = true;
+                }
+            }
+
+            res.render('question_detail', { question: results.question, options: results.question.options });
         })
+    } else {
+        Question.findById(question_id)
+            .populate('options', 'category audio picture text')
+            .populate('skill', 'name url')
+            .exec(function (err, question) {
+                if (err) next(err);
+
+                if (question) {
+                    res.render('question_detail', { question: question, options: question.options });
+                } else {
+                    next();
+                }
+            })
+    }
 };
 
 //Display questions for a specific Skill.

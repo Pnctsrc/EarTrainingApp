@@ -19,11 +19,18 @@ block content
       div.form-group
         - for (var i = 0; i < options.length; i++)
           div.form-check
-            input.form-check-input(type='radio' name='options' id='option'+i value=i)
+            input.form-check-input(type='radio' name='options' id='option'+i value=options[i]._id checked=options[i].if_checked)
             label.form-check-label(for='option'+i style='font-weight:unset')
               | !{options[i].text}
+            - if (options[i].if_correct!==undefined)
+              - if (options[i].if_correct)
+                |
+                b(style='color:green')  - Correct!
+              - else 
+                |
+                b(style='color:red')  - Incorrect.
 
-      button.btn.btn-primary(type='submit') Submit
+      button.btn.btn-primary.submit-button(type='submit') Submit
   - else
     p
       b No options to display
