@@ -263,5 +263,6 @@ __pycache__/
 
 #audio files
 EarTrainingApp/public/audio/
+EarTrainingApp/public/pics/
 
 EarTrainingApp/populatedb.js
