@@ -29,7 +29,14 @@ block content
               - else 
                 |
                 b(style='color:red')  - Incorrect.
-
+      hr
+      - if (question.all_correct!==undefined&&!question.all_correct)
+        p You didn't check all the correct answers.
+      - for (var i = 0; i < options.length; i++)
+        - if (options[i].if_checked!==undefined&&!options[i].if_correct)
+          p 
+            b Feedback for option#{i+1}: 
+            | #{options[i].feedback}
       button.btn.btn-primary.submit-button(type='submit') Submit
   - else
     p

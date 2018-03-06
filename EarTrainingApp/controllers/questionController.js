@@ -18,7 +18,7 @@ exports.question_detail = function (req, res, next) {
         async.parallel({
             question: function (callback) {
                 Question.findById(question_id)
-                    .populate('options', 'category audio picture text correct _id')
+                    .populate('options', 'category audio picture text correct _id feedback')
                     .populate('skill', 'name url')
                     .exec(function (err, question) {
                         if (err) {
@@ -64,7 +64,7 @@ exports.question_detail = function (req, res, next) {
         })
     } else {
         Question.findById(question_id)
-            .populate('options', 'category audio picture text')
+            .populate('options', 'category audio picture text feedback')
             .populate('skill', 'name url')
             .exec(function (err, question) {
                 if (err) next(err);

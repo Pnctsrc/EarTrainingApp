@@ -36,6 +36,12 @@ var OptionSchema = new Schema(
             type: Boolean,
             required: true,
         },
+        feedback: {
+            type: String,
+            required: function () {
+                return !this.correct;
+            }
+        }
     }
 );
 
