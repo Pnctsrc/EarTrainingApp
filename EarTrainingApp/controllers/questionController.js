@@ -14,27 +14,35 @@ exports.question_detail = function (req, res, next) {
     var question_id = mongoose.Types.ObjectId(req.params.id);
 
     //if the user has made a choice
-    if (req.query.options !== undefined) {
-        async.parallel({
-            question: function (callback) {
-                Question.findById(question_id)
-                    .populate('options', 'category audio picture text correct _id feedback')
-                    .populate('skill', 'name url')
-                    .exec(function (err, question) {
-                        if (err) {
-                            callback(err, question);
-                            return;
-                        }
+    if (Object.keys(req.query).length > 0) {
+        const functions = {};
 
-                        if (question) {
-                            callback(null, question)
-                        } else {
-                            next();
-                        }
-                    })
-            },
-            current_option_id: function (callback) {
-                var current_option_id = mongoose.Types.ObjectId(req.query.options);
+        //find the question
+        functions.question = function (callback) {
+            Question.findById(question_id)
+                .populate('options', 'category audio picture text correct _id feedback')
+                .populate('skill', 'name url')
+                .exec(function (err, question) {
+                    if (err) {
+                        callback(err, question);
+                        return;
+                    }
+
+                    if (question) {
+                        callback(null, question)
+                    } else {
+                        next();//this part should later be moved to validation section
+                    }
+                })
+        }
+
+        //check existence of each option
+        //this part should later be moved to validation section
+        var option_id_list = [];
+        for (let query in req.query) {
+            functions[query] = function (callback) {
+               
+                var current_option_id = mongoose.Types.ObjectId(req.query[query]);
 
                 //check if the option exists
                 Option.findById(current_option_id, function (err, option) {
@@ -44,21 +52,38 @@ exports.question_detail = function (req, res, next) {
                     }
 
                     if (option) {
-                        callback(null, current_option_id)
+                        option_id_list.push(current_option_id);
+                        callback(null, current_option_id);
                     } else {
                         next();
                     }
                 })
-            }
-        }, function (err, results) {
-            for (let option of results.question.options) {
-                var option_id = mongoose.Types.ObjectId(option._id);
+            } 
+        }
 
-                if (results.current_option_id.equals(option_id)) {
-                    option.if_correct = option.correct;
-                    option.if_checked = true;
+        async.parallel(functions, function (err, results) {
+            var number_of_correct_answers = 0;
+            for (let option of results.question.options) {
+                if (option.correct) number_of_correct_answers++;
+            }
+
+            var correct_answers_chosen = 0;
+            for (let option of results.question.options) {
+                for (let current_option_id of option_id_list) {
+                    var option_id = mongoose.Types.ObjectId(option._id);
+
+                    if (current_option_id.equals(option_id)) {
+                        option.if_correct = option.correct;
+                        option.if_checked = true;
+
+                        if (option.if_correct) correct_answers_chosen++;
+                    } else {
+                        delete option.feedback;//don't show other feedback to the users
+                    }
                 }
             }
+
+            if (correct_answers_chosen < number_of_correct_answers) results.question.all_correct = false;
 
             res.render('question_detail', { question: results.question, options: results.question.options });
         })

@@ -19,16 +19,18 @@ block content
       div.form-group
         - for (var i = 0; i < options.length; i++)
           div.form-check
-            input.form-check-input(type='radio' name='options' id='option'+i value=options[i]._id checked=options[i].if_checked)
+            input.form-check-input(type='checkbox' name='options'+i id='option'+i value=options[i]._id checked=options[i].if_checked)
             label.form-check-label(for='option'+i style='font-weight:unset')
-              | !{options[i].text}
-            - if (options[i].if_correct!==undefined)
-              - if (options[i].if_correct)
-                |
-                b(style='color:green')  - Correct!
+            - if (options[i].category==='text')
+              - if (options[i].if_correct!==undefined)
+                - if (options[i].if_correct)
+                  |
+                  b(style='color:green') !{options[i].text}
+                - else 
+                  |
+                  b(style='color:red') !{options[i].text}
               - else 
-                |
-                b(style='color:red')  - Incorrect.
+                | !{options[i].text}
       hr
       - if (question.all_correct!==undefined&&!question.all_correct)
         p You didn't check all the correct answers.
@@ -41,3 +43,6 @@ block content
   - else
     p
       b No options to display
+
+  script(src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js")
+  script(src="/javascripts/question_detail.js")
