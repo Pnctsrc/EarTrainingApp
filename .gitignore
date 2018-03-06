@@ -260,3 +260,8 @@ paket-files/
 __pycache__/
 *.pyc
 *.njsproj
+
+#audio files
+EarTrainingApp/public/audio/
+
+EarTrainingApp/populatedb.js
