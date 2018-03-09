@@ -18,42 +18,42 @@ block content
     form(method='GET' action='')
       div.form-group
         - for (var i = 0; i < options.length; i++)
-          div.form-check(style="margin-bottom:15px;")
+          div.form-check.question-option
             input.form-check-input(type='checkbox' name='options'+i id='option'+i value=options[i]._id checked=options[i].if_checked)
             | 
-            b(style="margin-right:5px;") Option!{i+1}
-            label.form-check-label(for='option'+i style='font-weight:unset')
+            b Option!{i+1}
+            label.form-check-label.option-label(for='option'+i)
             - if (options[i].category==='text')
               - if (options[i].if_correct!==undefined)
                 - if (options[i].if_correct)
                   |
-                  b(style='color:green') !{options[i].text}
+                  b.message_correct !{options[i].text}
                 - else 
                   |
-                  b(style='color:red') !{options[i].text}
+                  b.message_incorrect !{options[i].text}
               - else 
                 | !{options[i].text}
 
             - if (options[i].category==='audio')
-              audio(preload="auto" autobuffer controls style="vertical-align:middle;")
+              audio(preload="auto" autobuffer controls)
                 source(src=options[i].audio)
               - if (options[i].if_correct!==undefined)
                 - if (options[i].if_correct)
-                  p(style='display:inline-block')
-                    b(style='color:green') - Correct.
+                  p.message_p
+                    b.message_correct - Correct.
                 - else 
-                  p(style='display:inline-block')
-                    b(style='color:red') - Incorrect.
+                  p.message_p
+                    b.message_incorrect - Incorrect.
 
             - if (options[i].category==='picture')
-              img(src=options[i].picture alt="picture for option"+(i+1) style="display:inline-block;height:80px;vertical-align:middle;")
+              img(src=options[i].picture alt="picture for option"+(i+1))
               - if (options[i].if_correct!==undefined)
                 - if (options[i].if_correct)
-                  p(style='display:inline-block')
-                    b(style='color:green') - Correct.
+                  p.message_p
+                    b.message_correct - Correct.
                 - else 
-                  p(style='display:inline-block')
-                    b(style='color:red') - Incorrect.
+                  p.message_p
+                    b.message_incorrect - Incorrect.
                 
       hr
       - if (question.all_correct!==undefined&&!question.all_correct)
@@ -70,3 +70,4 @@ block content
 
   script(src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js")
   script(src="/javascripts/question_detail.js")
+  link(rel="stylesheet" type="text/css" href="/stylesheets/question_detail.css")

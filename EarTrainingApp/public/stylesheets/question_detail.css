@@ -1,0 +1,32 @@
+div.question-option {
+    margin-bottom: 15px;
+}
+
+div.question-option b {
+    margin-right: 5px;
+}
+
+div.question-option audio, div.question-option img {
+    vertical-align: middle;
+}
+
+div.question-option img {
+    display: inline-block;
+    height: 80px;
+}
+
+label.option-label {
+    font-weight: unset;
+}
+
+p.message_p {
+    display: inline-block;
+}
+
+b.message_correct {
+    color: green;
+}
+
+b.message_incorrect {
+    color: red;
+}
