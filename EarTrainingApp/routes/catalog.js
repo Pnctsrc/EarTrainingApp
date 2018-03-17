@@ -1,5 +1,8 @@
 var express = require('express');
 var router = express.Router();
+//handle mutipart form
+var multer = require('multer')
+var upload = multer()
 
 // Require controller modules.
 var skill_controller = require('../controllers/skillController');
@@ -44,7 +47,15 @@ router.get('/skills', skill_controller.skill_list);
 router.get('/question/create', question_controller.question_create_get);
 
 // POST request for creating Question.
-router.post('/question/create', question_controller.question_create_post);
+router.post('/question/create',
+    upload.fields([
+        { name: 'option_file_1', maxCount: 1 },
+        { name: 'option_file_2', maxCount: 1 },
+        { name: 'option_file_3', maxCount: 1 },
+        { name: 'option_file_4', maxCount: 1 },
+        { name: 'option_file_5', maxCount: 1 },
+    ]),
+    question_controller.question_create_post);
 
 // GET request to delete Question.
 router.get('/question/:id/delete', question_controller.question_delete_get);
