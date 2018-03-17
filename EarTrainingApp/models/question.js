@@ -20,6 +20,11 @@ var QuestionSchema = new Schema(
             ref: 'Skill',
             required: true,
         },
+        attempts: {
+            type: String,
+            required: true,
+            enum: ['unlimited', '3', '4', '5']
+        },
     }
 );
 

@@ -2,7 +2,11 @@ var express = require('express');
 var router = express.Router();
 //handle mutipart form
 var multer = require('multer')
-var upload = multer()
+var upload = multer({
+    limits: {
+        fileSize: 10485760 //10MB
+    }
+})
 
 // Require controller modules.
 var skill_controller = require('../controllers/skillController');

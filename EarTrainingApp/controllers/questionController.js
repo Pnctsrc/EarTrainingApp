@@ -63,6 +63,10 @@ exports.question_detail = function (req, res, next) {
         }
 
         async.parallel(functions, function (err, results) {
+            if (err) {
+                return next(err);
+            }
+
             var number_of_correct_answers = 0;
             for (let option of results.question.options) {
                 if (option.correct) number_of_correct_answers++;
@@ -143,7 +147,7 @@ function fetch_levels(current_level, level, skill_list, result) {
     }
 }
 
-exports.question_create_get = function (req, res) {
+exports.question_create_get = function (req, res, next) {
     Skill.find({}, 'name parent description')
         .populate("sub_skills")
         .exec(function (err, skill_list) {
@@ -161,8 +165,111 @@ exports.question_create_get = function (req, res) {
 };
 
 // Handle Question create on POST.
-exports.question_create_post = function (req, res) {
-    res.send('NOT IMPLEMENTED: Question create POST');
+exports.question_create_post = function (req, res, next) {
+    async.parallel({
+        skill_list: function (callback) {
+            Skill.find({}, 'name parent description')
+                .populate("sub_skills")
+                .exec(function (err, result) {
+                    if (err) {
+                        callback(err, null);
+                    } else {
+                        callback(null, result);
+                    }
+                });
+        },
+        question: function (callback) {
+            const skill_id = mongoose.Types.ObjectId(req.body.skill);
+
+            const new_question = {
+                html: req.body.text,
+                skill: skill_id,
+                difficulty: req.body.difficulty,
+                attempts: req.body.attempts,
+            }
+
+            var question = new Question(new_question);
+
+            question.save(function (err, result) {
+                if (err) {
+                    callback(err, null);
+                } else {
+                    callback(null, result);
+                }
+            })
+        },
+    }, function (err, results) {
+        if (err) {
+            return next(err);
+        }
+
+        const question_id = results.question._id;
+
+        //skill list
+        var sorted_list = [];
+        for (let skill of results.skill_list) {
+            if (!skill.parent) {
+                fetch_levels(skill, 0, results.skill_list, sorted_list);
+            }
+        }
+
+        //options
+        const option_list = [];
+        var count = 0;
+        for (var i = 1; i <= 5; i++) {
+            const option_text = req.body["option_text_" + i];
+            const option_feedback = req.body["option_feedback_" + i];
+            const option_correct = req.body["option_correct_" + i];
+            const option_file = req.files["option_file_" + i];
+
+            if (!option_text && !option_file) continue;
+            count++;
+
+            const new_option = {
+                correct: !!option_correct,
+                feedback: option_feedback,
+                question: question_id,
+            }
+
+            if (!option_file) {
+                new_option.text = option_text;
+                new_option.category = 'text';
+            } else {
+                const file_type = option_file[0].mimetype.substring(0, 5);
+                if (file_type == 'audio') {
+                    new_option.category = 'audio';
+                } else if (file_type == 'image'){
+                    new_option.category = 'picture';
+                }
+            }
+
+            //create option list
+            var option = new Option(new_option);
+            option_list.push(new Option(new_option));
+        }
+
+        if (count < 3) {
+            Question.remove({ _id: question_id })
+                .exec(function (err) {
+                    if (err) return next(err);
+                    return next({ message: "You must have at least two options for this question." });
+            })
+            return;
+        }
+
+        //save options
+        Option.insertMany(option_list, function (err, docs) {
+            if (err) {
+                Question.remove({ _id: question_id })
+                    .exec(function (error) {
+                        if (error) return next(error);
+                        return next(err);
+                    })
+            } else {
+                res.redirect(results.question.url);
+            }
+        })
+    });
 };
 
 // Display Question delete form on GET.

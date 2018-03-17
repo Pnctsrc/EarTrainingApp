@@ -49,7 +49,7 @@ block content
         div.form-group
           label.control-label.col-sm-2(for='option_correct_'+i ) Correct 
           div.col-sm-10
-            input.form-check-input(type='checkbox' name='option_correct'+i id='option_correct'+i )
+            input.form-check-input(type='checkbox' name='option_correct_'+i id='option_correct_'+i )
     hr
 
     div.form-horizontal
@@ -58,7 +58,7 @@ block content
         span.glyphicon.glyphicon-question-sign(tabindex='0', role='button' data-toggle='popover' data-trigger='hover' title='Number of attempts' data-content='You can set a maximum number of attempts so that a student has to skip to the next question after that.')
         div.col-sm-10
           select.form-control(name='attempts' id='attempts')
-            option(value='') Unlimited
+            option(value='unlimited') Unlimited
             - for (var i = 3; i <= 5; i++)
               option(value=i) #{i}
             
