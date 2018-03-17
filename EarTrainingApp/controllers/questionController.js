@@ -1,5 +1,6 @@
 var Question = require('../models/question');
 var Option = require('../models/option');
+var Skill = require('../models/skill')
 
 var mongoose = require('mongoose');
 var async = require('async');
@@ -123,8 +124,40 @@ exports.question_for_skill = function (req, res, next) {
 }
 
 // Display Question create form on GET.
+function fetch_levels(current_level, level, skill_list, result) {
+    //update level
+    current_level.level = level;
+    level++;
+    result.push(current_level);
+
+    if (current_level.sub_skills.length !== 0) {
+        for (let sub_skill of current_level.sub_skills) {
+            for (let skill of skill_list) {
+                if (sub_skill.id == skill._id) {
+                    fetch_levels(skill, level, skill_list, result);
+                }
+            }
+        }
+    } else {
+        current_level.is_bottom = true;
+    }
+}
+
 exports.question_create_get = function (req, res) {
-    res.send('NOT IMPLEMENTED: Question create GET');
+    Skill.find({}, 'name parent description')
+        .populate("sub_skills")
+        .exec(function (err, skill_list) {
+            if (err) { return next(err); }
+            var sorted_list = [];
+
+            for (let skill of skill_list) {
+                if (!skill.parent) {
+                    fetch_levels(skill, 0, skill_list, sorted_list);
+                }
+            }
+
+            res.render('question_form', { title: 'Create New Question', skill_list: sorted_list });
+        });
 };
 
 // Handle Question create on POST.

@@ -8,8 +8,14 @@ block content
       label(for='skill_input') Skill 
         span.glyphicon.glyphicon-question-sign(tabindex='0', role='button' data-toggle='popover' data-trigger='hover' title='Skill' data-content='This is the skill that the question belongs to. You must choose a skill that is not a parent of another skill.')
       select.form-control(name='skill' id='skill_input')
-        - for (var i = 0; i < 5; i++)
-          option(value=i) #{i}
+        each skill in skill_list
+          - var dashes = ''; for (var i = 0; i < skill.level * 4; i++) {dashes += "-";}
+          - if(!skill.parent)
+            option(value=skill._id disabled) !{skill.name}
+          - else if (!skill.is_bottom)
+            option(value=skill._id disabled) !{dashes}!{skill.name}
+          - else 
+            option.bottom-level-skill(value=skill._id) !{dashes}!{skill.name}
     hr
 
     div.form-group
@@ -49,7 +55,7 @@ block content
     div.form-horizontal
       div.form-group
         label.control-label.col-sm-2(for='attempts') # of attempts 
-          span.glyphicon.glyphicon-question-sign(tabindex='0', role='button' data-toggle='popover' data-trigger='hover' title='Number of attempts' data-content='You can set a maximum number of attempts so that a student has to skip to the next question after that.')
+        span.glyphicon.glyphicon-question-sign(tabindex='0', role='button' data-toggle='popover' data-trigger='hover' title='Number of attempts' data-content='You can set a maximum number of attempts so that a student has to skip to the next question after that.')
         div.col-sm-10
           select.form-control(name='attempts' id='attempts')
             option(value='') Unlimited
@@ -58,7 +64,7 @@ block content
             
       div.form-group
         label.control-label.col-sm-2(for='difficulty') Difficulty 
-          span.glyphicon.glyphicon-question-sign(tabindex='0', role='button' data-toggle='popover' data-trigger='hover' title='Difficulty' data-content='A basic question should focus on pure indentification. An intermediate question should involve comparisons. Advanced questions are usually for well-trained students.')
+        span.glyphicon.glyphicon-question-sign(tabindex='0', role='button' data-toggle='popover' data-trigger='hover' title='Difficulty' data-content='A basic question should focus on pure indentification. An intermediate question should involve comparisons. Advanced questions are usually for well-trained students.')
         div.col-sm-10
           select.form-control(name='difficulty' id='difficulty')
             option(value='basic') Basic
@@ -67,3 +73,4 @@ block content
     button.btn.btn-primary(type='submit') Submit
 
   script(src="/javascripts/question_form.js")
+  link(rel="stylesheet" type="text/css" href="/stylesheets/question_form.css")
