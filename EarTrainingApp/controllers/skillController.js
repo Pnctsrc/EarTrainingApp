@@ -5,6 +5,8 @@ var Option = require('../models/option');
 var async = require('async');
 var mongoose = require('mongoose');
 
+var fetch_skill_levels = require('../utils/skill_util').fetch_skill_levels;
+
 exports.index = function (req, res) {
     async.parallel({
         skill_count: function (callback) {
@@ -26,16 +28,6 @@ exports.skill_list = function (req, res, next) {
     Skill.find({}, 'name parent description')
         .exec(function (err, skill_list) {
             if (err) { return next(err); }
-            //Successful, so render
-
-            ////display as nested list
-            //var sorted_list = [];
-
-            //for (let skill of skill_list) {
-            //    if (!skill.parent) {
-            //        fetch_levels(skill, 0, skill_list, sorted_list);
-            //    }
-            //}
 
             res.render('skill_list', { title: 'Skill List', skill_list: skill_list });
         });
@@ -56,12 +48,25 @@ exports.skill_detail = function (req, res) {
 
 // Display Skill create form on GET.
 exports.skill_create_get = function (req, res) {
-	res.send('NOT IMPLEMENTED: Skill create GET');
+    Skill.find({}, 'name parent description')
+        .populate("sub_skills")
+        .exec(function (err, skill_list) {
+            if (err) { return next(err); }
+            var sorted_list = [];
+
+            for (let skill of skill_list) {
+                if (!skill.parent) {
+                    fetch_skill_levels(skill, 0, skill_list, sorted_list);
+                }
+            }
+
+            res.render('skill_form', { title: 'Create New Skill', skill_list: sorted_list });
+        });
 };
 
 // Handle Skill create on POST.
 exports.skill_create_post = function (req, res) {
-	res.send('NOT IMPLEMENTED: Skill create POST');
+    res.send('NOT IMPLEMENTED: Skill create POST');
 };
 
 // Display Skill delete form on GET.

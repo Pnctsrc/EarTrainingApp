@@ -1,0 +1,81 @@
+extends layout
+
+block content
+  h1= title
+  
+  form.create-question-form(method='POST')
+    div.form-group
+      label(for='skill_name') Name 
+        span.glyphicon.glyphicon-question-sign(tabindex='0', role='button' data-toggle='popover' data-trigger='hover' title='Skill Name' data-content='The name of the skill should be a concise summary of the description.')
+      input.form-control(type='text' placeholder='Name of the skill' name='skill_name' id='skill_name')
+
+    div.form-group
+      label(for='skill_description') Desciption 
+        span.glyphicon.glyphicon-question-sign(tabindex='0', role='button' data-toggle='popover' data-trigger='hover' title='Skill Description' data-content='The description should include in detail what ability the skill focuses on and what kind of exercises this skill has.')
+      textarea.form-control(rows='4' name='skill_description' id='skill_description' placeholder="Description of the skill")
+
+    div.form-group
+      b Parent 
+        span.glyphicon.glyphicon-question-sign(tabindex='0', role='button' data-toggle='popover' data-trigger='hover' title='Skill Parent' data-content='If this skill is to be a sub-skill of another skill, specify that skill here. Skills with bold names are the ones that contain exercises. If you choose any of the bold skills, you must create a separate skill that is to be the child of this new skill, and the parent of those exercises.')
+        span.glyphicon.glyphicon-chevron-up.parent-chevron-up.toggle-chevron
+        span.glyphicon.glyphicon-chevron-down.parent-chevron-down.toggle-chevron
+      div.skill-box.parent-box
+        each skill in skill_list
+          div.radio
+            label
+              input(type='radio' name='skill_parent' id='skill_parent' value=skill._id checked=skill.if_checked is-bottom=skill.is_bottom)
+              - var dashes = ''; for (var i = 0; i < skill.level * 4; i++) {dashes += "-";}
+              - if(!skill.parent)
+                | !{skill.name}
+              - else if (!skill.is_bottom)
+                | !{dashes}!{skill.name}
+              - else
+                |
+                b !{dashes}!{skill.name}
+
+    div.separate-skill
+      div.form-group
+        label(for='sep_skill_name') Name for the separate skill
+        input.form-control(type='text' placeholder='Name of the skill' name='sep_skill_name' id='sep_skill_name')
+
+      div.form-group
+        label(for='sep_skill_description') Desciption  for the separate skill
+        textarea.form-control(rows='4' name='sep_skill_description' id='sep_skill_description' placeholder="Description of the skill")
+
+    div.form-group
+      b Children 
+        span.glyphicon.glyphicon-question-sign(tabindex='0', role='button' data-toggle='popover' data-trigger='hover' title='Skill Children' data-content='If this skill is to be a super-skill of other skills, specify those skills here. Bold skills are the ones that do not have any parents. If you choose any skill that is not bold, you will change its parent.')
+        span.glyphicon.glyphicon-chevron-up.children-chevron-up.toggle-chevron
+        span.glyphicon.glyphicon-chevron-down.children-chevron-down.toggle-chevron
+      div.skill-box.children-box
+        each skill in skill_list
+          div.checkbox
+            label 
+              input(type='checkbox' name='skill_children' id='skill_children' value=skill._id checked=skill.if_checked)
+              - var dashes = ''; for (var i = 0; i < skill.level * 4; i++) {dashes += "-";}
+              - if(!skill.parent)
+                | 
+                b !{skill.name}
+              - else
+                | !{dashes}!{skill.name}
+
+    div.form-group
+      b Requirements 
+        span.glyphicon.glyphicon-question-sign(tabindex='0', role='button' data-toggle='popover' data-trigger='hover' title='Skill Requirements' data-content='If this skill requires completion of other skills, specify those skills here.')
+        span.glyphicon.glyphicon-chevron-up.req-chevron-up.toggle-chevron
+        span.glyphicon.glyphicon-chevron-down.req-chevron-down.toggle-chevron
+      div.skill-box.req-box
+        each skill in skill_list
+          div.checkbox
+            label
+              input(type='checkbox' name='skill_requirements' id='skill_requirements' value=skill._id checked=skill.if_checked)
+              - var dashes = ''; for (var i = 0; i < skill.level * 4; i++) {dashes += "-";}
+              - if(!skill.parent)
+                | !{skill.name}
+              - else
+                | !{dashes}!{skill.name}
+
+    button.btn.btn-primary(type='submit') Submit
+
+  script(src="/javascripts/skill_form.js")
+  link(rel="stylesheet" type="text/css" href="/stylesheets/skill_form.css")
