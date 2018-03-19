@@ -12,7 +12,7 @@ exports.fetch_skill_levels = function fetch_levels(current_level, level, skill_l
 				}
 			}
 		}
-	} else {
-		current_level.is_bottom = true;
+    } else {
+        if (current_level.parent) current_level.is_bottom = true;
 	}
 }
