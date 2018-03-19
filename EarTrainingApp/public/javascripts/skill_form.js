@@ -1,11 +1,25 @@
 $(document).ready(function () {
     $("span.glyphicon.glyphicon-question-sign").popover();
 
-    $("input[type='radio']").change(function (event) {
+    $("input[type='radio'][class!='replace-radio']").change(function (event) {
         if ($(this)[0].attributes[4]) {
             $(".separate-skill").css("display", "block");
         } else {
             $(".separate-skill").css("display", "none");
+            $("input.replace-radio").removeAttr("checked");
+            $(".sep-skill-box").css("display", "none");
+            $("#sep_skill_name").val('');
+            $("#sep_skill_description").val('');
+        }
+    })
+
+    $("input[type='radio'][class='replace-radio']").change(function (event) {
+        if ($(this)[0].id.match(/true/)) {
+            $(".sep-skill-box").css("display", "none");
+            $("#sep_skill_name").val('');
+            $("#sep_skill_description").val('');
+        } else {
+            $(".sep-skill-box").css("display", "block");
         }
     })
 

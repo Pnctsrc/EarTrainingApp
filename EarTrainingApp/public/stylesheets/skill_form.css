@@ -11,6 +11,10 @@ div.separate-skill {
     display: none;
 }
 
+div.sep-skill-box {
+    display: none;
+}
+
 .glyphicon-chevron-up, .glyphicon-chevron-down {
     margin-left: 5px;
 }

@@ -20,6 +20,10 @@ block content
         span.glyphicon.glyphicon-chevron-up.parent-chevron-up.toggle-chevron
         span.glyphicon.glyphicon-chevron-down.parent-chevron-down.toggle-chevron
       div.skill-box.parent-box
+        div.radio
+          label
+            input(type='radio' name='skill_parent' id='skill_parent' value='' is-bottom=false) 
+            | None
         each skill in skill_list
           div.radio
             label
@@ -35,12 +39,28 @@ block content
 
     div.separate-skill
       div.form-group
-        label(for='sep_skill_name') Name for the separate skill
-        input.form-control(type='text' placeholder='Name of the skill' name='sep_skill_name' id='sep_skill_name')
+        b Is the new skill a substitute? 
+          span.glyphicon.glyphicon-question-sign(tabindex='0', role='button' data-toggle='popover' data-trigger='hover' title='Skill Substitute' data-content='Since you set the parent to be the bold skill, the questions belong to the bold skill must be placed elsewhere. If you want the questions to be the questions of this new skill, check the radio button on the left; otherwise you should check the other radio button, and create a separete skill for the affected questions. The separate skill will be on the same level of the new skill, and share the requirements of the original skill to which these questions belong.')
+        
+        div.replace-box
+          label.radio-inline
+            input.replace-radio(type='radio' name='if_replace_parent' id='if_replace_parent_true' value=1)
+            | This new skill 
+            b will 
+            | be the substitute bold parent 
+          label.radio-inline
+            input.replace-radio(type='radio' name='if_replace_parent' id='if_replace_parent_false' value=0)
+            | This new skill 
+            b will not 
+            | be the substitute bold parent 
+      div.sep-skill-box
+        div.form-group
+          label(for='sep_skill_name') Name for the separate skill
+          input.form-control(type='text' placeholder='Name of the skill' name='sep_skill_name' id='sep_skill_name')
 
-      div.form-group
-        label(for='sep_skill_description') Desciption  for the separate skill
-        textarea.form-control(rows='4' name='sep_skill_description' id='sep_skill_description' placeholder="Description of the skill")
+        div.form-group
+          label(for='sep_skill_description') Desciption  for the separate skill
+          textarea.form-control(rows='4' name='sep_skill_description' id='sep_skill_description' placeholder="Description of the skill")
 
     div.form-group
       b Children 
