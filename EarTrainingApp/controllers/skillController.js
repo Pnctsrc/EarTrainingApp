@@ -35,15 +35,21 @@ exports.skill_list = function (req, res, next) {
 };
 
 // Display detail page for a specific Skill.
-exports.skill_detail = function (req, res) {
+exports.skill_detail = function (req, res, next) {
     var skill_id = mongoose.Types.ObjectId(req.params.id); 
 
     Skill.findById(skill_id, 'name description parent')
         .populate('sub_skills')
         .exec(function (err, the_skill) {
-            if (err) { return next(err); }
-
-            res.render('skill_detail', { title: 'Skill Detail', the_skill: the_skill });
+            if (err) {
+                return next(err);
+            } else if (!the_skill) {
+                return next({
+                    message: "Skill not found",
+                })
+            } else {
+                res.render('skill_detail', { title: 'Skill Detail', the_skill: the_skill });
+            }  
         });
 };
 
@@ -175,8 +181,6 @@ exports.skill_create_post = function (req, res, next) {
 
     async.waterfall(functions, function (err, skill_doc, sep_skill_doc) {
         if (err) {
-            console.log("something wrong!");
-            console.log("delete all new skills;")
             async.parallel([
                 function (callback) {
                     if (skill_doc) {
