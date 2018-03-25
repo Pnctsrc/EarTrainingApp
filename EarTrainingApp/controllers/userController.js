@@ -6,6 +6,7 @@ const async = require('async');
 // Authenticate the user
 exports.autenticate = function (req, res, next) {
     const token = req.validated_token;
+
     User.findOne({ user_id: token.payload.sub }).exec(function (err, user_doc) {
         if (err) {
             return next(err);
@@ -24,17 +25,13 @@ exports.autenticate = function (req, res, next) {
                 if (err) {
                     return next(err);
                 } else {
-                    res.json({
-                        token: token.token,
-                        exp: token.exp,
-                    });
+                    res.cookie("google_token", token.token, { expires: new Date(token.exp * 1000) });
+                    res.json({ url: req.body.req_url });
                 }
             })
         } else {
-            res.json({
-                token: token.token,
-                exp: token.exp,
-            })
+            res.cookie("google_token", token.token, { expires: new Date(token.exp * 1000) });
+            res.json({ url: req.body.req_url });
         }
     })
 };

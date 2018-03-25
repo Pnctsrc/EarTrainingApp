@@ -10,6 +10,10 @@ var routes = require('./routes/index');
 var users = require('./routes/users');
 var catalog = require('./routes/catalog');  //Import routes for "catalog" area of site
 
+// Require token and role validation
+var token_validation = require('./utils/router_utils').validate_token;
+var role_validation = require('./utils/router_utils').check_role;
+
 var app = express();
 
 //Set up mongoose connection
@@ -31,6 +35,10 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+//handle token and role
+app.use(token_validation);
+app.use(role_validation);
 
 app.use('/', routes);
 app.use('/users', users);

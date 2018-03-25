@@ -13,16 +13,20 @@ var skill_controller = require('../controllers/skillController');
 var question_controller = require('../controllers/questionController');
 var option_controller = require('../controllers/optionController');
 
+//user validations
+var require_login = require('../utils/router_utils').require_login;
+var require_role = require('../utils/router_utils').require_role;
+
 /// SKILL ROUTES ///
 
 // GET catalog home page.
 router.get('/', skill_controller.index);
 
 // GET request for creating a Skill. NOTE This must come before routes that display Skill (uses id).
-router.get('/skill/create', skill_controller.skill_create_get);
+router.get('/skill/create', require_login, require_role, skill_controller.skill_create_get);
 
 // POST request for creating Skill.
-router.post('/skill/create', skill_controller.skill_create_post);
+router.post('/skill/create', require_login, require_role, skill_controller.skill_create_post);
 
 // GET request to delete Skill.
 router.get('/skill/:id/delete', skill_controller.skill_delete_get);
@@ -48,10 +52,12 @@ router.get('/skills', skill_controller.skill_list);
 /// QUESTION ROUTES ///
 
 // GET request for creating Question. NOTE This must come before route for id (i.e. display question).
-router.get('/question/create', question_controller.question_create_get);
+router.get('/question/create', require_login, require_role, question_controller.question_create_get);
 
 // POST request for creating Question.
 router.post('/question/create',
+    require_login,
+    require_role,
     upload.fields([
         { name: 'option_file_1', maxCount: 1 },
         { name: 'option_file_2', maxCount: 1 },

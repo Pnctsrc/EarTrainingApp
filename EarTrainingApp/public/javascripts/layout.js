@@ -1,11 +1,3 @@
-$(document).ready(function () {
-    if (Cookies.get("google_token")) {
-        $("div.after-login").css("display", "block");
-    } else {
-        $("div.before-login").css("display", "block");
-    }
-})
-
 window.onGoogleYoloLoad = (googleyolo) => {
     $("a.login-button").click(function (event) {
         const retrievePromise = googleyolo.retrieve({
@@ -28,16 +20,14 @@ window.onGoogleYoloLoad = (googleyolo) => {
                 $.ajax({
                     type: "POST",
                     url: '/users/authenticate',
-                    data: { token: credential.idToken },
+                    data: { token: credential.idToken, req_url: document.URL},
                     success: function (data) {
-                        Cookies.set("google_token", data.token, { expires: new Date(data.exp * 1000) });
-                        $("div.login-box").css("display", "none");
-                        $("div.after-login").css("display", "block");
+                        window.location.replace(data.url);
                     },
                     dataType: 'json'
                 }).fail(function (err) {
                     window.alert(err.statusText);
-                    Cookies.remove("google_token", { path: '' });
+                    Cookies.remove("google_token");
                     $("div.login-box").css("display", "none");
                     $("div.before-login").css("display", "block");
                 });
@@ -64,16 +54,14 @@ window.onGoogleYoloLoad = (googleyolo) => {
                         $.ajax({
                             type: "POST",
                             url: '/users/authenticate',
-                            data: { token: credential.idToken },
+                            data: { token: credential.idToken, req_url: document.URL },
                             success: function (data) {
-                                Cookies.set("google_token", data.token, { expires: new Date(data.exp * 1000) });
-                                $("div.login-box").css("display", "none");
-                                $("div.after-login").css("display", "block");
+                                window.location.replace(data.url);
                             },
                             dataType: 'json'
                         }).fail(function (err) {
                             window.alert(err.statusText);
-                            Cookies.remove("google_token", { path: '' });
+                            Cookies.remove("google_token");
                             $("div.login-box").css("display", "none");
                             $("div.before-login").css("display", "block");
                         });
@@ -82,7 +70,7 @@ window.onGoogleYoloLoad = (googleyolo) => {
                     switch (error.type) {
                         case "noCredentialsAvailable":
                             window.alert(error.message + " Either you don't currently have any Google account signed in, or your browser doesn't support Google one tap login.")
-                            Cookies.remove("google_token", { path: '' });
+                            Cookies.remove("google_token");
                             $("div.login-box").css("display", "none");
                             $("div.before-login").css("display", "block");
                             break;
@@ -93,9 +81,8 @@ window.onGoogleYoloLoad = (googleyolo) => {
     })
 
     $("a.logout-button").click(function (event) {
-        Cookies.remove("google_token", { path: '' });
-        $("div.login-box").css("display", "none");
-        $("div.before-login").css("display", "block");
+        Cookies.remove("google_token");
+        location.reload();
         googleyolo.disableAutoSignIn();
     })
 };
