@@ -4,10 +4,14 @@ html(lang='en')
     title= title
     meta(charset='utf-8')
     meta(name='viewport', content='width=device-width, initial-scale=1')
+    script(src='https://smartlock.google.com/client')
     link(rel='stylesheet', href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css')
     script(src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js")
     script(src='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js')
     link(rel='stylesheet', href='/stylesheets/style.css')
+    link(rel='stylesheet', href='/stylesheets/layout.css')
+    script(src="/javascripts/js-cookie.js")
+    script(src="/javascripts/layout.js")
   body
     div(class='container-fluid')
       div(class='row')
@@ -20,10 +24,26 @@ html(lang='en')
                 a(href='/catalog/skills') All skills
 
               hr
-              li 
-                a(href='/catalog/skill/create') Add a skill
-              li 
-                a(href='/catalog/question/create') Add a question
+              div.before-login.login-box
+                li
+                  a.login-button Log in
+
+              div.during-login.login-box
+                li
+                  a Verifying...
+
+              div.after-login.login-box
+                li
+                  a(href='/users/profile') Profile
+                li
+                  a.logout-button Log out
+
+              div.create-new
+                hr
+                li 
+                  a(href='/catalog/skill/create') Add a skill
+                li 
+                  a(href='/catalog/question/create') Add a question
                 
         div(class='col-sm-10')
           block content

@@ -1,0 +1,7 @@
+a.login-button:hover, a.logout-button:hover {
+    cursor: pointer;
+}
+
+div.login-box, div.create-new {
+    display: none;
+}
