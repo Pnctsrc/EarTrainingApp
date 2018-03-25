@@ -1,0 +1,28 @@
+extends layout
+
+block content 
+  div.profile
+    div.row
+      div.panel.panel-default
+        div.panel-heading
+          h4= title
+        div.panel-body
+          div.col-md-2.col-xs-10.col-sm-2.col-lg-2
+            img.img-circle.img-responsive(src= data.picture, alt='User Pic')
+
+          div.col-md-8.col-xs-10.col-sm-8.col-lg-8
+            div.container
+              h2= data.name
+              - if(if_instructor)
+                p  - an 
+                  b Instructor
+              - else
+                p  - a 
+                  b Student
+
+            div.container.details
+              p
+                span.glyphicon.glyphicon-envelope
+                |  !{data.email}
+
+  link(rel="stylesheet" type="text/css" href="/stylesheets/profile_detail.css")

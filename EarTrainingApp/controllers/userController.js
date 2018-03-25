@@ -45,7 +45,13 @@ exports.user_profile_get = function (req, res, next) {
             } else if (!user_doc) {
                 return next({ message: "User not found" })
             } else {
-                res.json(user_doc);
+                data = {
+                    name: user_doc.name,
+                    email: user_doc.email,
+                    picture: user_doc.picture,
+                    role: user_doc.role
+                }
+                res.render("profile_detail", { title: "User Profile", data: data });
             }
         })
 };
