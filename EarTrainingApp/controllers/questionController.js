@@ -8,11 +8,6 @@ var fs = require('fs');
 
 var fetch_skill_levels = require('../utils/skill_util').fetch_skill_levels;
 
-// Display list of all Questions.
-exports.question_list = function (req, res) {
-    res.send('NOT IMPLEMENTED: Question list');
-};
-
 // Display detail page for a specific Question.
 exports.question_detail = function (req, res, next) {
     var question_id = mongoose.Types.ObjectId(req.params.id);
@@ -111,23 +106,27 @@ exports.question_detail = function (req, res, next) {
     }
 };
 
+
 //Display questions for a specific Skill.
 exports.question_for_skill = function (req, res, next) {
     var skill_id = mongoose.Types.ObjectId(req.params.id);
     var question_level = req.params.level;
 
-    Question.findOne({ difficulty: question_level, skill: skill_id }, '_id')
+    Question.findOne({ difficulty: question_level, skill: skill_id }, '_id attempts')
         .populate('skill')
         .exec(function (err, question) {
             if (err) next(err);
 
             if (question) {
-                res.redirect(question.url);
+                if (req.validated_token) {
+                    res.render('same_page_question', { question: question });
+                } else {
+                    res.redirect(question.url);
+                }
             } else {
-                //if no questions found, stay on the same page
-                res.redirect('/catalog/skill/' + skill_id);
+                res.status(404).send("No question found for this level of the skill.");
             }
-        })
+        }) 
 }
 
 // Display Question create form on GET.

@@ -82,9 +82,6 @@ router.post('/question/:id/update', question_controller.question_update_post);
 // GET request for one Question.
 router.get('/question/:id', question_controller.question_detail);
 
-// GET request for list of all Questions.
-router.get('/questions', question_controller.question_list);
-
 /// OPTION ROUTES ///
 
 // GET request for creating a Option. NOTE This must come before route that displays Option (uses id).

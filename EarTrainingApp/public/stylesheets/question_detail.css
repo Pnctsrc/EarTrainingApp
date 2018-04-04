@@ -30,3 +30,7 @@ b.message_correct {
 b.message_incorrect {
     color: red;
 }
+
+button.function-button {
+    margin-right: 10px;
+}
