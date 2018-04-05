@@ -55,6 +55,17 @@ block content
                   p.message_p
                     b.message_incorrect - Incorrect.
 
+        template(v-if="feedback.length != 0")
+          hr
+
+          div.feedback(v-for="feedback in feedback")
+            template(v-if="typeof feedback != 'string'")
+              p 
+                b Feedback for option {{feedback.option_index + 1}}: 
+                | {{feedback.text}}
+            template(v-else)
+              P You haven't checked all the correct answers.
+
         button.btn.btn-primary.submit-button.function-button(v-on:click="submit" :disabled="current_attempt > max_attempts && max_attempts != 0") Submit
         button.btn.btn-primary.skip-button.function-button(v-on:click="skip") Skip
     template(v-else)

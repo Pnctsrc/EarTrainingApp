@@ -22,6 +22,7 @@ var app = new Vue({
         current_attempt: 1,
         current_index: 0,
         max_attempts: 0,
+        feedback:[],
     },
     created: function () {
         const url_path = window.location.pathname.split('/');
@@ -76,20 +77,38 @@ var app = new Vue({
                 url: '/api/question_answer',
                 data: {
                     options: options,
+                    question: app.questions[app.current_index]._id,
                 },
                 success: function (data) {
                     //clear saved answers and feedback
                     for (var option of app.options) {
                         Vue.set(option, "if_correct", undefined);
-                        Vue.set(option, "feedback", undefined);
+                        app.feedback = [];
                     }
 
-                    for (var result of data) {
+                    const feedback_list = {};
+                    for (var result of data.list) {
                         const option_id = result._id;
                         const option_index = $("div#option-" + option_id).index();
                         Vue.set(app.options[option_index], "if_correct", result.correct);
+
+                        if (result.feedback) {
+                            const feedback = {
+                                text: result.feedback,
+                                option_index: option_index,
+                            }
+
+                            feedback_list[option_index] = feedback;
+                        }
                     }
 
+                    if (data.not_all) {
+                        app.feedback.push("not all");
+                    }
+
+                    for (var i = 0; i < 5; i++) {
+                        if (feedback_list[i]) app.feedback.push(feedback_list[i]);
+                    }
 
                     app.current_attempt++;
                     $("button.submit-button").removeAttr("disabled", false);
@@ -108,8 +127,11 @@ var app = new Vue({
             //clear saved answers and feedback
             for (var option of app.options) {
                 Vue.set(option, "if_correct", undefined);
-                Vue.set(option, "feedback", undefined);
+                app.feedback = [];
             }
+
+            $("button.submit-button").removeAttr("disabled", false);
+            $("button.submit-button")[0].innerText = "Submit";
 
             app.current_attempt = 1;
             app.current_index++;
