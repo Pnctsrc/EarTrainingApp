@@ -2,7 +2,7 @@ extends layout
 
 block content 
   div#app
-    h1 Question for skill - 
+    h1 Question ({{current_index + 1}}/{{questions.length}}) for skill - 
       a(href=question.skill.url) #{question.skill.name}
 
     hr
@@ -18,8 +18,8 @@ block content
 
       form
         div.form-group#app
-          div.form-check.question-option(v-for="(option, index) in options")
-            input.form-check-input(type='checkbox' :name="'options'+index" :id="'option'+index" :value="option._id")
+          div.form-check.question-option(v-for="(option, index) in options" :id="'option-'+option._id")
+            input.form-check-input(type='checkbox' :name="options._id" :id="option._id" :value="option._id" v-on:change="check_option" :key="option._id")
             | 
             b Option {{index + 1}}
             label.form-check-label.option-label(:for="'option'+index")
