@@ -3,6 +3,9 @@ var Option = require('../models/option');
 var mongoose = require('mongoose');
 
 var async = require('async');
+var fs = require('fs');
+
+const question_images_path = "./public/question_images/";
 
 // Get the list of all questions for a specific level of a skill
 exports.questions_list = function (req, res, next) {
@@ -82,3 +85,54 @@ exports.question_answer = function (req, res, next) {
         })
     }
 };
+
+// Handle image upload
+exports.upload_image = function (req, res, next) {
+    if (!fs.existsSync(question_images_path)) {
+        fs.mkdirSync(question_images_path);
+    }
+    const file_list = [];
+
+    var index = 0;
+    for (let file of req.files) {
+        const file_type = file.mimetype.substring(0, 5);
+        const file_extension = '.' + file.mimetype.substring(6);
+        const date = (new Date()).getTime();
+        console.log(file)
+        let file_name =  date + "_" + index++ + "_temp" + file_extension;
+
+        file_list.push(function (callback) {
+            fs.writeFile(question_images_path + file_name, file.buffer, function (err) {
+                if (err) {
+                    callback(err, null);
+                } else {
+                    callback(null, question_images_path.substring(8) + file_name);
+                }
+            })
+        })
+    }
+
+    async.series(file_list, function (err, results) {
+        if (err) {
+            return next(err);
+        } else {
+            res.json(results);
+        }
+    })
+};
+
+exports.delete_image = function (req, res, next) {
+    const file_name = req.body.src.substring(req.body.src.lastIndexOf("/") + 1);
+
+    if (!fs.existsSync(question_images_path + file_name)) {
+        res.status(404).send();
+    } else {
+        fs.unlink(question_images_path + file_name, function (err) {
+            if (err) {
+                return next(err);
+            } else {
+                res.status(200).send();
+            }
+        })
+    }
+}
