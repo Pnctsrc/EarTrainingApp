@@ -1,3 +1,29 @@
 option.bottom-level-skill {
     font-weight: bold;
 }
+
+div.add-option {
+    display: inline-block;
+    margin-left: 8px;
+}
+
+div.add-option:hover {
+    cursor: pointer;
+}
+
+div.add-option-wrapper {
+    display: inline-block;
+}
+
+p.options-header {
+    display: inline-block;
+}
+
+span.remove-button{
+    vertical-align: text-top;
+    margin-left: 5px;
+}
+
+span.remove-button:hover {
+    cursor: pointer;
+}

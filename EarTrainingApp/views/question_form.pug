@@ -2,76 +2,89 @@ extends layout
 
 block content
   h1= title
-  
-  form.create-question-form(method='POST' enctype="multipart/form-data")
-    div.form-group
-      label(for='skill_input') Skill 
-        span.glyphicon.glyphicon-question-sign(tabindex='0', role='button' data-toggle='popover' data-trigger='hover' title='Skill' data-content='This is the skill that the question belongs to. You must choose a skill that is not a parent of another skill.')
-      select.form-control(name='skill' id='skill_input')
-        each skill in skill_list
-          - var dashes = ''; for (var i = 0; i < skill.level * 4; i++) {dashes += "-";}
-          - if(!skill.parent)
-            option(value=skill._id disabled) !{skill.name}
-          - else if (!skill.is_bottom)
-            option(value=skill._id disabled) !{dashes}!{skill.name}
-          - else 
-            option.bottom-level-skill(value=skill._id) !{dashes}!{skill.name}
-    hr
+  div#app
+    form.create-question-form
+      div.form-group
+        label(for='skill_input') Skill 
+          span.glyphicon.glyphicon-question-sign(tabindex='0', role='button' data-toggle='popover' data-trigger='hover' title='Skill' data-content='This is the skill that the question belongs to. You must choose a skill that is not a parent of another skill.')
+        select.form-control(name='skill' id='skill_input')
+          each skill in skill_list
+            - var dashes = ''; for (var i = 0; i < skill.level * 4; i++) {dashes += "-";}
+            - if(!skill.parent)
+              option(value=skill._id disabled) !{skill.name}
+            - else if (!skill.is_bottom)
+              option(value=skill._id disabled) !{dashes}!{skill.name}
+            - else 
+              option.bottom-level-skill(value=skill._id) !{dashes}!{skill.name}
+      hr
 
-    div.form-group
-      label(for='text_input') Question text 
-        span.glyphicon.glyphicon-question-sign(tabindex='0', role='button' data-toggle='popover' data-trigger='hover' title='Question text' data-content='This is the content of the question. You can add text, pictures or audio files.')
-      textarea.form-control(rows='4' name='text' id='text_input')
-    hr
+      div.form-group
+        label(for='text_input') Question text 
+          span.glyphicon.glyphicon-question-sign(tabindex='0', role='button' data-toggle='popover' data-trigger='hover' title='Question text' data-content='This is the content of the question. You can add text, pictures or audio files.')
+        textarea.form-control(rows='4' name='text' id='text_input')
+      hr
 
-    p
-      b Options 
-      span.glyphicon.glyphicon-question-sign(tabindex='0', role='button' data-toggle='popover' data-trigger='hover' title='About options' data-content='When a student made a wrong choice, you can give feedback such as \"The first half is correct, but pay a attention to the key change in the other half.\" For each option, you can have either text or file, but not both.')
+      p.options-header
+        b Options 
+        span.glyphicon.glyphicon-question-sign(tabindex='0', role='button' data-toggle='popover' data-trigger='hover' title='About options' data-content='When a student made a wrong choice, you can give feedback such as \"The first half is correct, but pay a attention to the key change in the other half.\" For each option, you can have either text or file, but not both.')
+          div.add-option(v-on:click="push_file")
+            span.glyphicon.glyphicon-plus 
+            |  audio/picture option
+          div.add-option(v-on:click="push_text")
+            span.glyphicon.glyphicon-plus
+            |  text option
 
-    - for(var i = 1; i <= 5; i++)
-      label(for='option_group_'+i ) Option #{i}
+      div.option-list
+        div.option(v-for="(option, index) in options")
+          label(:for="'option_group_'+index" ) Option {{index + 1}}
+          span.glyphicon.glyphicon-remove.remove-button(v-on:click="delete_option")
+
+          div.form-horizontal
+            template(v-if="option.is_text")
+              div.form-group
+                label.control-label.col-sm-2(:for="'option_text_'+index" ) Text
+                div.col-sm-10
+                  input.form-control(type='text' placeholder='Put option text here...' :name="'option_text_'+index" :id="'option_text_'+index" v-model="option.content")
+          
+            template(v-else)
+              div.form-group
+                label.control-label.col-sm-2(:for="'option_file_'+index" ) Audio/Picture
+                div.col-sm-10
+                  input.form-control(type='file' :name="'option_file_'+index" :id="'option_file_'+index" accept=".jpg, .jpeg, .png, .mp3, .wav" v-on:change="file_input")
+          
+            template(v-if="!option.if_correct")
+              div.form-group
+                label.control-label.col-sm-2(:for="'option_feedback_'+index" ) Feedback 
+                div.col-sm-10
+                  input.form-control(type='text' placeholder='Put feedback here...' :name="'option_feedback_'+index" :id="'option_feedback_'+index" v-model="option.feedback")
+          
+            div.form-group
+              label.control-label.col-sm-2(:for="'option_correct_'+index" ) Correct 
+              div.col-sm-10
+                input.form-check-input(type='checkbox' :name="'option_correct_'+index" :id="'option_correct_'+index" v-on:change="check_correct" v-model="option.if_correct")
+      hr
+
       div.form-horizontal
         div.form-group
-          label.control-label.col-sm-2(for='option_text_'+i ) Text
+          label.control-label.col-sm-2(for='attempts') # of attempts 
+          span.glyphicon.glyphicon-question-sign(tabindex='0', role='button' data-toggle='popover' data-trigger='hover' title='Number of attempts' data-content='You can set a maximum number of attempts so that a student has to skip to the next question after that.')
           div.col-sm-10
-            input.form-control(type='text' placeholder='Put option text here...' name='option_text_'+i id='option_text_'+i )
-
-        div.form-group
-          label.control-label.col-sm-2(for='option_file_'+i ) Audio/Picture
-          div.col-sm-10
-            input.form-control(type='file' name='option_file_'+i id='option_file_'+i accept=".jpg, .jpeg, .png, .mp3, .wav")
-      
-        div.form-group
-          label.control-label.col-sm-2(for='option_feedback_'+i ) Feedback 
-          div.col-sm-10
-            input.form-control(type='text' placeholder='Put feedback here...' name='option_feedback_'+i id='option_feedback_'+i )
-      
-        div.form-group
-          label.control-label.col-sm-2(for='option_correct_'+i ) Correct 
-          div.col-sm-10
-            input.form-check-input(type='checkbox' name='option_correct_'+i id='option_correct_'+i )
-    hr
-
-    div.form-horizontal
-      div.form-group
-        label.control-label.col-sm-2(for='attempts') # of attempts 
-        span.glyphicon.glyphicon-question-sign(tabindex='0', role='button' data-toggle='popover' data-trigger='hover' title='Number of attempts' data-content='You can set a maximum number of attempts so that a student has to skip to the next question after that.')
-        div.col-sm-10
-          select.form-control(name='attempts' id='attempts')
-            option(value='unlimited') Unlimited
-            - for (var i = 3; i <= 5; i++)
-              option(value=i) #{i}
+            select.form-control(name='attempts' id='attempts')
+              option(value='unlimited') Unlimited
+              - for (var i = 3; i <= 5; i++)
+                option(value=i) #{i}
             
-      div.form-group
-        label.control-label.col-sm-2(for='difficulty') Difficulty 
-        span.glyphicon.glyphicon-question-sign(tabindex='0', role='button' data-toggle='popover' data-trigger='hover' title='Difficulty' data-content='A basic question should focus on pure indentification. An intermediate question should involve comparisons. Advanced questions are usually for well-trained students.')
-        div.col-sm-10
-          select.form-control(name='difficulty' id='difficulty')
-            option(value='basic') Basic
-            option(value='intermediate') Intermediate
-            option(value='advanced') Advanced
-    button.btn.btn-primary(type='submit') Submit
+        div.form-group
+          label.control-label.col-sm-2(for='difficulty') Difficulty 
+          span.glyphicon.glyphicon-question-sign(tabindex='0', role='button' data-toggle='popover' data-trigger='hover' title='Difficulty' data-content='A basic question should focus on pure indentification. An intermediate question should involve comparisons. Advanced questions are usually for well-trained students.')
+          div.col-sm-10
+            select.form-control(name='difficulty' id='difficulty')
+              option(value='basic') Basic
+              option(value='intermediate') Intermediate
+              option(value='advanced') Advanced
+      button.btn.btn-primary.submit-button(v-on:click="submit") Submit
 
+  script(src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js")
   script(src="http://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.9/summernote.js")
   script(src="/javascripts/question_form.js")
   link(rel="stylesheet" type="text/css" href="/stylesheets/question_form.css")

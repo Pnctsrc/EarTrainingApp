@@ -268,7 +268,7 @@ exports.question_create_post = function (req, res, next) {
                     return next(err);
                 })
             } else {
-                res.redirect(results.question.url);
+                res.json(results.question.url);
             }
         })
     });
