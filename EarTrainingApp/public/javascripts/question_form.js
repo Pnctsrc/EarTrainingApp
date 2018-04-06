@@ -122,6 +122,9 @@ var app = new Vue({
                 if (correct_count > 3) {
                     window.alert("You can have at most 3 correct options.");
                     return false;
+                } else if (correct_count < 1) {
+                    window.alert("You can have at least 1 correct option.");
+                    return false;
                 }
 
                 return true;
@@ -152,7 +155,7 @@ var app = new Vue({
             data.append("text", $('#text_input').summernote('code'));
             data.append("skill", $("#skill_input").val());
             data.append("difficulty", $("#difficulty").val());
-            data.append("attempts", $("#attempts").val())
+            data.append("attempts", $("#attempts").val());
 
             $.ajax({
                 type: "POST",

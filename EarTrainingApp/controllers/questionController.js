@@ -210,7 +210,7 @@ exports.question_create_post = function (req, res, next) {
             count++;
 
             const new_option = {
-                correct: !!option_correct,
+                correct: option_correct,
                 feedback: option_feedback,
                 question: question_id,
             }
