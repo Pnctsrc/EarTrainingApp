@@ -4,15 +4,6 @@ div.skill-box {
     border: 1px solid rgb(204, 204, 204);
     border-radius: 6px;
     padding: 6px 12px 6px 12px;
-    display: none;
-}
-
-div.separate-skill {
-    display: none;
-}
-
-div.sep-skill-box {
-    display: none;
 }
 
 .glyphicon-chevron-up, .glyphicon-chevron-down {
@@ -23,6 +14,26 @@ div.sep-skill-box {
     cursor: pointer;
 }
 
-.glyphicon-chevron-up {
-    display: none;
+div.children-box label[disabled-label=true] {
+    color: #ccc;
+}
+
+div.children-box label[disabled-label=true]:hover {
+    cursor: not-allowed;
+}
+
+div.parent-box label[disabled-label=true] {
+    color: #ccc;
+}
+
+div.parent-box label[disabled-label=true]:hover {
+    cursor: not-allowed;
+}
+
+div.req-box label[disabled-label=true] {
+    color: #ccc;
+}
+
+div.req-box label[disabled-label=true]:hover {
+    cursor: not-allowed;
 }

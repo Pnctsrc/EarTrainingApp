@@ -28,4 +28,7 @@ router.post('/upload_image', require_login, require_role, upload.array('images')
 // POST request for image delete
 router.post('/delete_image', require_login, require_role, api_controller.delete_image);
 
+// GET request for sorted skill list
+router.get('/sorted_skill_list', require_login, require_role, api_controller.sorted_skill_list);
+
 module.exports = router;

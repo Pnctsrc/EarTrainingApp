@@ -28,6 +28,14 @@ var SkillSchema = new Schema(
             type: Schema.ObjectId,
             ref: 'Skill',
         },
+    },
+    {
+        toJSON: {
+            virtuals: true
+        },
+        toObject: {
+            virtuals: true
+        }
     }
 );
 

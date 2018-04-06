@@ -3,99 +3,98 @@ extends layout
 block content
   h1= title
   
-  form.create-question-form(method='POST')
-    div.form-group
-      label(for='skill_name') Name 
-        span.glyphicon.glyphicon-question-sign(tabindex='0', role='button' data-toggle='popover' data-trigger='hover' title='Skill Name' data-content='The name of the skill should be a concise summary of the description.')
-      input.form-control(type='text' placeholder='Name of the skill' name='skill_name' id='skill_name')
+  div#app(v-show="ready")
+    form.create-question-form(method='POST' onsubmit="return validateForm()")
+      div.form-group
+        label(for='skill_name') Name 
+          span.glyphicon.glyphicon-question-sign(tabindex='0', role='button' data-toggle='popover' data-trigger='hover' title='Skill Name' data-content='The name of the skill should be a concise summary of the description.')
+        input.form-control(type='text' placeholder='Name of the skill' name='skill_name' id='skill_name')
 
-    div.form-group
-      label(for='skill_description') Desciption 
-        span.glyphicon.glyphicon-question-sign(tabindex='0', role='button' data-toggle='popover' data-trigger='hover' title='Skill Description' data-content='The description should include in detail what ability the skill focuses on and what kind of exercises this skill has.')
-      textarea.form-control(rows='4' name='skill_description' id='skill_description' placeholder="Description of the skill")
+      div.form-group
+        label(for='skill_description') Desciption 
+          span.glyphicon.glyphicon-question-sign(tabindex='0', role='button' data-toggle='popover' data-trigger='hover' title='Skill Description' data-content='The description should include in detail what ability the skill focuses on and what kind of exercises this skill has.')
+        textarea.form-control(rows='4' name='skill_description' id='skill_description' placeholder="Description of the skill")
 
-    div.form-group
-      b Parent 
-        span.glyphicon.glyphicon-question-sign(tabindex='0', role='button' data-toggle='popover' data-trigger='hover' title='Skill Parent' data-content='If this skill is to be a sub-skill of another skill, specify that skill here. Skills with bold names are the ones that contain exercises. If you choose any of the bold skills, you must create a separate skill that is to be the child of this new skill, and the parent of those exercises.')
-        span.glyphicon.glyphicon-chevron-up.parent-chevron-up.toggle-chevron
-        span.glyphicon.glyphicon-chevron-down.parent-chevron-down.toggle-chevron
-      div.skill-box.parent-box
-        div.radio
-          label
-            input(type='radio' name='skill_parent' id='skill_parent' value='' is-bottom=false) 
-            | None
-        each skill in skill_list
+      div.form-group
+        b Parent 
+          span.glyphicon.glyphicon-question-sign(tabindex='0', role='button' data-toggle='popover' data-trigger='hover' title='Skill Parent' data-content='If this skill is to be a sub-skill of another skill, specify that skill here. Skills with bold names are the ones that contain exercises. If you choose any of the bold skills, you must create a separate skill that is to be the child of this new skill, and the parent of those exercises.')
+          span.glyphicon.glyphicon-chevron-up(v-if="show_parent" v-on:click="show_parent=false")
+          span.glyphicon.glyphicon-chevron-down(v-if="!show_parent" v-on:click="show_parent=true")
+        div.skill-box.parent-box(v-show="show_parent")
           div.radio
             label
-              input(type='radio' name='skill_parent' id='skill_parent' value=skill._id checked=skill.if_checked is-bottom=skill.is_bottom)
-              - var dashes = ''; for (var i = 0; i < skill.level * 4; i++) {dashes += "-";}
-              - if(!skill.parent)
-                | !{skill.name}
-              - else if (!skill.is_bottom)
-                | !{dashes}!{skill.name}
-              - else
-                |
-                b !{dashes}!{skill.name}
+              input(type='radio' name='skill_parent' id='skill_parent' value='' v-model="current_parent" v-on:change="check_none") 
+              | None
+          template(v-for="(skill, index) in skill_list")
+            div.radio
+              label(:disabled-label="if_descendant(index)" :data-toggle="skill.is_bottom? 'tooltip' : ''" :title="if_descendant(index)? 'Children and all the descendants cannot be the parent.' : (skill.is_bottom? 'Bottom-level skill (you might have to create a separate skill if you choose this).' : '')")
+                input(type='radio' name='skill_parent' id='skill_parent' :value="skill._id" v-on:change="check_parent" v-model="current_parent" :disabled="if_descendant(index)")
+                template(v-if="!skill.parent")
+                  | {{skill.name}}
+                template(v-else-if="!skill.is_bottom")
+                  | {{generate_dashes(index)}}{{skill.name}}
+                template(v-else)
+                  | 
+                  b {{generate_dashes(index)}}{{skill.name}}
 
-    div.separate-skill
-      div.form-group
-        b Is the new skill a substitute? 
-          span.glyphicon.glyphicon-question-sign(tabindex='0', role='button' data-toggle='popover' data-trigger='hover' title='Skill Substitute' data-content='Since you set the parent to be the bold skill, the questions belong to the bold skill must be placed elsewhere. If you want the questions to be the questions of this new skill, check the radio button on the left; otherwise you should check the other radio button, and create a separete skill for the affected questions. The separate skill will be on the same level of the new skill, and share the requirements of the original skill to which these questions belong.')
+      div.separate-skill(v-if="show_substitute")
+        div.form-group
+          b Is the new skill a substitute? 
+            span.glyphicon.glyphicon-question-sign(tabindex='0', role='button' data-toggle='popover' data-trigger='hover' title='Skill Substitute' data-content='Since you set the parent to be a bottom-level skill, the questions belong to this skill must be placed elsewhere. If you want the new skill to be their parent, check the radio button on the left; otherwise you should check the other radio button, and create a separete skill for those questions. The separate skill will be on the same level of the new skill, and share the requirements of the original bottom-level skill.')
         
-        div.replace-box
-          label.radio-inline
-            input.replace-radio(type='radio' name='if_replace_parent' id='if_replace_parent_true' value=1)
-            | This new skill 
-            b will 
-            | be the substitute bold parent 
-          label.radio-inline
-            input.replace-radio(type='radio' name='if_replace_parent' id='if_replace_parent_false' value=0)
-            | This new skill 
-            b will not 
-            | be the substitute bold parent 
-      div.sep-skill-box
-        div.form-group
-          label(for='sep_skill_name') Name for the separate skill
-          input.form-control(type='text' placeholder='Name of the skill' name='sep_skill_name' id='sep_skill_name')
+          div.replace-box
+            label.radio-inline
+              input.replace-radio(type='radio' name='if_replace_parent' id='if_replace_parent_true' value=1 v-on:click="show_sep_skill=false")
+              | This new skill 
+              b will 
+              | be the substitute parent 
+            label.radio-inline
+              input.replace-radio(type='radio' name='if_replace_parent' id='if_replace_parent_false' value=0 v-on:click="show_sep_skill=true")
+              | This new skill 
+              b will not 
+              | be the substitute parent 
+        div.sep-skill-box(v-if="show_sep_skill")
+          div.form-group
+            label(for='sep_skill_name') Name for the separate skill
+            input.form-control(type='text' placeholder='Name of the skill' name='sep_skill_name' id='sep_skill_name')
 
-        div.form-group
-          label(for='sep_skill_description') Desciption  for the separate skill
-          textarea.form-control(rows='4' name='sep_skill_description' id='sep_skill_description' placeholder="Description of the skill")
+          div.form-group
+            label(for='sep_skill_description') Desciption  for the separate skill
+            textarea.form-control(rows='4' name='sep_skill_description' id='sep_skill_description' placeholder="Description of the skill")
 
-    div.form-group
-      b Children 
-        span.glyphicon.glyphicon-question-sign(tabindex='0', role='button' data-toggle='popover' data-trigger='hover' title='Skill Children' data-content='If this skill is to be a super-skill of other skills, specify those skills here. Bold skills are the ones that do not have any parents. If you choose any skill that is not bold, you will change its parent.')
-        span.glyphicon.glyphicon-chevron-up.children-chevron-up.toggle-chevron
-        span.glyphicon.glyphicon-chevron-down.children-chevron-down.toggle-chevron
-      div.skill-box.children-box
-        each skill in skill_list
-          div.checkbox
-            label 
-              input(type='checkbox' name='skill_children' id='skill_children' value=skill._id checked=skill.if_checked)
-              - var dashes = ''; for (var i = 0; i < skill.level * 4; i++) {dashes += "-";}
-              - if(!skill.parent)
-                | 
-                b !{skill.name}
-              - else
-                | !{dashes}!{skill.name}
+      div.form-group
+        b Children 
+          span.glyphicon.glyphicon-question-sign(tabindex='0', role='button' data-toggle='popover' data-trigger='hover' title='Skill Children' data-content='If this skill is to be a super-skill of other skills, specify those skills here. Bold skills are the ones that do not have any parents. If you choose any skill that is not bold, you will change its parent.')
+          span.glyphicon.glyphicon-chevron-up(v-if="show_children" v-on:click="show_children=false")
+          span.glyphicon.glyphicon-chevron-down(v-if="!show_children" v-on:click="show_children=true")
+        div.skill-box.children-box(v-show="show_children")
+          template(v-for="(skill, index) in skill_list")
+            div.checkbox
+              label(:disabled-label="if_ancestor(index)" :data-toggle="if_ancestor(index)? 'tooltip' : ''" :title="if_ancestor(index)? 'Parent/ancestors cannot be the children' : ''")
+                input(type='checkbox' name='skill_children' id='skill_children' :value='skill._id' :disabled="if_ancestor(index)" v-on:change="check_children")
+                template(v-if="!skill.parent")
+                  | 
+                  b {{skill.name}}
+                template(v-else)
+                  | {{generate_dashes(index)}}{{skill.name}}
 
-    div.form-group
-      b Requirements 
-        span.glyphicon.glyphicon-question-sign(tabindex='0', role='button' data-toggle='popover' data-trigger='hover' title='Skill Requirements' data-content='If this skill requires completion of other skills, specify those skills here.')
-        span.glyphicon.glyphicon-chevron-up.req-chevron-up.toggle-chevron
-        span.glyphicon.glyphicon-chevron-down.req-chevron-down.toggle-chevron
-      div.skill-box.req-box
-        each skill in skill_list
-          div.checkbox
-            label
-              input(type='checkbox' name='skill_requirements' id='skill_requirements' value=skill._id checked=skill.if_checked)
-              - var dashes = ''; for (var i = 0; i < skill.level * 4; i++) {dashes += "-";}
-              - if(!skill.parent)
-                | !{skill.name}
-              - else
-                | !{dashes}!{skill.name}
+      div.form-group
+        b Requirements 
+          span.glyphicon.glyphicon-question-sign(tabindex='0', role='button' data-toggle='popover' data-trigger='hover' title='Skill Requirements' data-content='If this skill requires completion of other skills, specify those skills here.')
+          span.glyphicon.glyphicon-chevron-up(v-if="show_req" v-on:click="show_req=false")
+          span.glyphicon.glyphicon-chevron-down(v-if="!show_req" v-on:click="show_req=true")
+        div.skill-box.req-box(v-show="show_req")
+          template(v-for="(skill, index) in skill_list")
+            div.checkbox
+              label(:disabled-label="if_descendant(index)" :data-toggle="if_descendant(index)? 'tooltip' : ''" :title="if_descendant(index)? 'Children and all the descendants cannot be the requirements.' : ''")
+                input(type='checkbox' name='skill_requirements' id='skill_requirements' :value="skill._id" :disabled="if_descendant(index)")
+                template(v-if="!skill.parent")
+                  | {{skill.name}}
+                template(v-else)
+                  | {{generate_dashes(index)}}{{skill.name}}
 
-    button.btn.btn-primary(type='submit') Submit
+      button.btn.btn-primary.submit-button(type='submit') Submit
 
+  script(src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js")
   script(src="/javascripts/skill_form.js")
   link(rel="stylesheet" type="text/css" href="/stylesheets/skill_form.css")

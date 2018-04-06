@@ -1,9 +1,12 @@
 var Question = require('../models/question');
 var Option = require('../models/option');
+var Skill = require('../models/skill');
 var mongoose = require('mongoose');
 
 var async = require('async');
 var fs = require('fs');
+
+var fetch_skill_levels = require('../utils/skill_util').fetch_skill_levels;
 
 const question_images_path = "./public/question_images/";
 
@@ -135,4 +138,49 @@ exports.delete_image = function (req, res, next) {
             }
         })
     }
+}
+
+exports.sorted_skill_list = function (req, res, next) {
+    Skill.find({}, 'name parent description')
+        .populate("sub_skills")
+        .lean()
+        .exec(function (err, skill_list) {
+            if (err) { return next(err); }
+            var sorted_list = [];
+
+            for (let skill of skill_list) {
+                if (!skill.parent) {
+                    fetch_skill_levels(skill, 0, skill_list, sorted_list);
+                }
+            }
+
+            var max_level = 0;
+            for (let skill of sorted_list) {
+                if (skill.level > max_level) max_level = skill.level;
+            }
+
+            const populate_depth = {
+                path: 'parent',
+            };
+            function deep_populate(current_depth, n) {
+                n++;
+                if (n <= max_level) {
+                    current_depth.populate = {
+                        path: "parent",
+                    }
+
+                    deep_populate(current_depth.populate, n);
+                } 
+            }
+
+            deep_populate(populate_depth, 0);
+
+            Skill.populate(sorted_list, populate_depth, function (err, results) {
+                if (err) {
+                    return next(err);
+                } else {
+                    res.json(results);
+                }
+            })
+        });
 }
