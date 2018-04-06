@@ -7,7 +7,7 @@ exports.fetch_skill_levels = function fetch_levels(current_level, level, skill_l
 	if (current_level.sub_skills.length !== 0) {
 		for (let sub_skill of current_level.sub_skills) {
 			for (let skill of skill_list) {
-				if (sub_skill.id == skill._id) {
+                if (sub_skill._id.toString() == skill._id.toString()) {
 					fetch_levels(skill, level, skill_list, result);
 				}
 			}
