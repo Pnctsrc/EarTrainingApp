@@ -19,6 +19,10 @@ label.option-label {
     font-weight: unset;
 }
 
+label.option-label:hover {
+    cursor: pointer;
+}
+
 p.message_p {
     display: inline-block;
 }

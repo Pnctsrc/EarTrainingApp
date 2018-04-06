@@ -19,41 +19,41 @@ block content
       form
         div.form-group#app
           div.form-check.question-option(v-for="(option, index) in options" :id="'option-'+option._id")
-            input.form-check-input(type='checkbox' :name="options._id" :id="option._id" :value="option._id" v-on:change="check_option" :key="option._id")
-            | 
-            b Option {{index + 1}}
-            label.form-check-label.option-label(:for="'option'+index")
-            template(v-if="option.category === 'text'")
-              template(v-if="option.if_correct !== undefined")
-                template(v-if="option.if_correct")
-                  |
-                  b.message_correct {{option.text}}
+            label.form-check-label.option-label(:for="option._id")
+              input.form-check-input(type='checkbox' :name="options._id" :id="option._id" :value="option._id" v-on:change="check_option" :key="option._id")
+              | 
+              b Option {{index + 1}}
+              template(v-if="option.category === 'text'")
+                template(v-if="option.if_correct !== undefined")
+                  template(v-if="option.if_correct")
+                    |
+                    b.message_correct {{option.text}}
+                  template(v-else)
+                    |
+                    b.message_incorrect {{option.text}}
                 template(v-else)
-                  |
-                  b.message_incorrect {{option.text}}
+                  | {{option.text}}
+
+              template(v-else-if="option.category === 'audio'")
+                audio(preload="auto" autobuffer controls)
+                    source(:src="option.audio")
+                template(v-if="option.if_correct !== undefined")
+                  template(v-if="option.if_correct")
+                    p.message_p
+                      b.message_correct - Correct.
+                  template(v-else)
+                    p.message_p
+                      b.message_incorrect - Incorrect.
+
               template(v-else)
-                | {{option.text}}
-
-            template(v-else-if="option.category === 'audio'")
-              audio(preload="auto" autobuffer controls)
-                  source(:src="option.audio")
-              template(v-if="option.if_correct !== undefined")
-                template(v-if="option.if_correct")
-                  p.message_p
-                    b.message_correct - Correct.
-                template(v-else)
-                  p.message_p
-                    b.message_incorrect - Incorrect.
-
-            template(v-else)
-              img(:src="option.picture" :alt="'picture for option'+index+1")
-              template(v-if="option.if_correct !== undefined")
-                template(v-if="option.if_correct")
-                  p.message_p
-                    b.message_correct - Correct.
-                template(v-else)
-                  p.message_p
-                    b.message_incorrect - Incorrect.
+                img(:src="option.picture" :alt="'picture for option'+index+1")
+                template(v-if="option.if_correct !== undefined")
+                  template(v-if="option.if_correct")
+                    p.message_p
+                      b.message_correct - Correct.
+                  template(v-else)
+                    p.message_p
+                      b.message_incorrect - Incorrect.
 
         template(v-if="feedback.length != 0")
           hr
