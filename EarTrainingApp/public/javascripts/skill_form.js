@@ -112,7 +112,7 @@ var app = new Vue({
                 const current_child_level = current_child.level;
 
                 var current_lookup_index = current_child_index + 1;
-                if (current_child_index >= app.skill_list.length) continue outer_loop;
+                if (current_lookup_index >= app.skill_list.length) continue outer_loop;
                 var current_lookup_child = app.skill_list[current_lookup_index];
                 while (current_lookup_child.level > current_child.level) {
                     if (current_lookup_child._id == app.skill_list[index]._id) return true;
