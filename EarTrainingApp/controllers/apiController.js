@@ -101,7 +101,7 @@ exports.upload_image = function (req, res, next) {
         const file_type = file.mimetype.substring(0, 5);
         const file_extension = '.' + file.mimetype.substring(6);
         const date = (new Date()).getTime();
-        console.log(file)
+
         let file_name =  date + "_" + index++ + "_temp" + file_extension;
 
         file_list.push(function (callback) {

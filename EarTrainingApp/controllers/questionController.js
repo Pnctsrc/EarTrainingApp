@@ -242,13 +242,21 @@ exports.question_create_post = function (req, res, next) {
                 const file_name = question_id + i + file_extension;
 
                 if (file_type == 'audio') {
+                    if (!fs.existsSync("./public/audio/")) {
+                        fs.mkdirSync("./public/audio/");
+                    }
+
                     new_option.category = 'audio';
                     fs.writeFileSync('./public/audio/' + file_name, option_file[0].buffer);
                     new_option.audio = '/audio/' + file_name;
                     file_links.push(function (callback) {
                         fs.unlink('./public/audio/' + file_name, callback);
                     });
-                } else if (file_type == 'image'){
+                } else if (file_type == 'image') {
+                    if (!fs.existsSync("./public/pics/")) {
+                        fs.mkdirSync("./public/pics/");
+                    }
+
                     new_option.category = 'picture';
                     fs.writeFileSync('./public/pics/' + file_name, option_file[0].buffer);
                     new_option.picture = '/pics/' + file_name;
