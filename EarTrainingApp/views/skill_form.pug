@@ -27,8 +27,8 @@ block content
               | None
           template(v-for="(skill, index) in skill_list")
             div.radio
-              label(:disabled-label="if_descendant(index)" :data-toggle="skill.is_bottom? 'tooltip' : ''" :title="if_descendant(index)? 'Children and all the descendants cannot be the parent.' : (skill.is_bottom? 'Bottom-level skill (you might have to create a separate skill if you choose this).' : '')")
-                input(type='radio' name='skill_parent' id='skill_parent' :value="skill._id" v-on:change="check_parent" v-model="current_parent" :disabled="if_descendant(index)")
+              label(:disabled-label="if_disable_parent(index)" :data-toggle="if_disable_parent? 'tooltip' : (skill.is_bottom? 'tooltip' : '')" :title="if_disable_parent(index)? 'Requirements(including all their descendants), and children(including all their descendants) cannot be the parent.' : (skill.is_bottom? 'Bottom-level skill (you might have to create a separate skill if you choose this).' : '')")
+                input(type='radio' name='skill_parent' id='skill_parent' :value="skill._id" v-on:change="check_parent" v-model="current_parent" :disabled="if_disable_parent(index)")
                 template(v-if="!skill.parent")
                   | {{skill.name}}
                 template(v-else-if="!skill.is_bottom")
@@ -70,8 +70,8 @@ block content
         div.skill-box.children-box(v-show="show_children")
           template(v-for="(skill, index) in skill_list")
             div.checkbox
-              label(:disabled-label="if_ancestor(index)" :data-toggle="if_ancestor(index)? 'tooltip' : ''" :title="if_ancestor(index)? 'Parent/ancestors cannot be the children' : ''")
-                input(type='checkbox' name='skill_children' id='skill_children' :value='skill._id' :disabled="if_ancestor(index)" v-on:change="check_children")
+              label(:disabled-label="if_disable_children(index)" :data-toggle="if_disable_children(index)? 'tooltip' : ''" :title="if_disable_children(index)? 'Parent(including all its ancestors), requirements(including all their descendants), and descendants of the checked children cannot be the children' : ''")
+                input(type='checkbox' name='skill_children' id='skill_children' :value='skill._id' :disabled="if_disable_children(index)" v-on:change="check_children")
                 template(v-if="!skill.parent")
                   | 
                   b {{skill.name}}
@@ -86,8 +86,8 @@ block content
         div.skill-box.req-box(v-show="show_req")
           template(v-for="(skill, index) in skill_list")
             div.checkbox
-              label(:disabled-label="if_descendant(index)" :data-toggle="if_descendant(index)? 'tooltip' : ''" :title="if_descendant(index)? 'Children and all the descendants cannot be the requirements.' : ''")
-                input(type='checkbox' name='skill_requirements' id='skill_requirements' :value="skill._id" :disabled="if_descendant(index)")
+              label(:disabled-label="if_disable_req(index)" :data-toggle="if_disable_req(index)? 'tooltip' : ''" :title="if_disable_req(index)? 'Parent(including all its ancestors), children(including all their descendants), and descendants of the checked requirements cannot be the requirements.' : ''")
+                input(type='checkbox' name='skill_requirements' id='skill_requirements' :value="skill._id" :disabled="if_disable_req(index)" v-on:change="check_req")
                 template(v-if="!skill.parent")
                   | {{skill.name}}
                 template(v-else)
