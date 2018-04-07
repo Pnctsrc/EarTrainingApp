@@ -148,8 +148,10 @@ var app = new Vue({
                     data.append("option_text_" + option_number, current_option.content);
                 }
 
-                data.append("option_feedback_" + option_number, current_option.feedback);
                 data.append("option_correct_" + option_number, current_option.if_correct);
+                if (!current_option.if_correct) {
+                    data.append("option_feedback_" + option_number, current_option.feedback);
+                }
             }
 
             data.append("text", $('#text_input').summernote('code'));

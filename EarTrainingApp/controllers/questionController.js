@@ -8,6 +8,8 @@ var fs = require('fs');
 
 var fetch_skill_levels = require('../utils/skill_util').fetch_skill_levels;
 
+var sanitizeHtml = require('sanitize-html');
+
 // Display detail page for a specific Question.
 exports.question_detail = function (req, res, next) {
     var question_id = mongoose.Types.ObjectId(req.params.id);
@@ -149,6 +151,19 @@ exports.question_create_get = function (req, res, next) {
 
 // Handle Question create on POST.
 exports.question_create_post = function (req, res, next) {
+    //sanitize html
+    req.body.text = sanitizeHtml(req.body.text, {
+        allowedTags: ['p', 'a', 'ul', 'ol', 'img',
+            'li', 'b', 'i', 'hr', 'br', 'span', 'iframe',
+            'table', 'thead', 'tbody', 'tr', 'th', 'td'],
+        allowedAttributes: false,
+        selfClosing: ['img', 'br', 'hr', 'link'],
+        allowedSchemes: ['http', 'https'],
+        allowedSchemesAppliedToAttributes: ['href', 'src'],
+        allowProtocolRelative: true,
+        allowedIframeHostnames: false,
+    }); 
+
     async.parallel({
         skill_list: function (callback) {
             Skill.find({}, 'name parent description')
@@ -200,6 +215,7 @@ exports.question_create_post = function (req, res, next) {
         const option_list = [];
         const file_links = [];
         var count = 0;
+        var correct_count = 0;
         for (var i = 1; i <= 5; i++) {
             const option_text = req.body["option_text_" + i];
             const option_feedback = req.body["option_feedback_" + i];
@@ -208,12 +224,14 @@ exports.question_create_post = function (req, res, next) {
 
             if (!option_text && !option_file) continue;
             count++;
-
+            if (option_correct == "true") correct_count++;
+            
             const new_option = {
                 correct: option_correct,
-                feedback: option_feedback,
                 question: question_id,
             }
+
+            if (option_feedback) new_option.feedback = option_feedback;
 
             if (!option_file) {
                 new_option.text = option_text;
@@ -244,33 +262,47 @@ exports.question_create_post = function (req, res, next) {
             var option = new Option(new_option);
             option_list.push(new Option(new_option));
         }
-
+        console.log(correct_count)
         if (count < 2) {
             file_links.push(function (callback) {
                 Question.remove({ _id: question_id }).exec(callback);
             })
             async.parallel(file_links, function (err) {
                 if (err) return next(err);
-                return next({ message: "You must have at least two options for this question." });
+                res.status(400).send("You must have at least two options for this question.");
             })
-            
-            return;
+        } else if (correct_count < 1) {
+            file_links.push(function (callback) {
+                Question.remove({ _id: question_id }).exec(callback);
+            })
+            async.parallel(file_links, function (err) {
+                if (err) return next(err);
+                res.status(400).send("You must have at least 1 correct option.");
+            })
+        } else if (correct_count > 3) {
+            file_links.push(function (callback) {
+                Question.remove({ _id: question_id }).exec(callback);
+            })
+            async.parallel(file_links, function (err) {
+                if (err) return next(err);
+                res.status(400).send("You must have at most 3 correct options.");
+            })
+        } else {
+            //save options
+            Option.insertMany(option_list, function (err, docs) {
+                if (err) {
+                    file_links.push(function (callback) {
+                        Question.remove({ _id: question_id }).exec(callback);
+                    })
+                    async.parallel(file_links, function (error) {
+                        if (error) return next(error);
+                        return next(err);
+                    })
+                } else {
+                    res.json(results.question.url);
+                }
+            })
         }
-
-        //save options
-        Option.insertMany(option_list, function (err, docs) {
-            if (err) {
-                file_links.push(function (callback) {
-                    Question.remove({ _id: question_id }).exec(callback);
-                })
-                async.parallel(file_links, function (error) {
-                    if (error) return next(error);
-                    return next(err);
-                })
-            } else {
-                res.json(results.question.url);
-            }
-        })
     });
 };
 
