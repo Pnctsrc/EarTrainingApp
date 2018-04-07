@@ -262,7 +262,7 @@ exports.question_create_post = function (req, res, next) {
             var option = new Option(new_option);
             option_list.push(new Option(new_option));
         }
-        console.log(correct_count)
+
         if (count < 2) {
             file_links.push(function (callback) {
                 Question.remove({ _id: question_id }).exec(callback);
