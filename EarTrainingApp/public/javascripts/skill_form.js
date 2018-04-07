@@ -173,12 +173,12 @@ var app = new Vue({
             const current_parent_index = $($("div.parent-box input[value=\"" + current_parent._id + "\"]")[0].parentNode.parentNode).index() - 1;
 
             var current_lookup_index = current_parent_index + 1;
-            if (current_lookup_index >= app.skill_list.length) continue outer_loop;
+            if (current_lookup_index >= app.skill_list.length) return false;
             var current_lookup_req = app.skill_list[current_lookup_index];
             while (current_lookup_req.level > current_parent.level) {
                 if (current_lookup_req._id == app.skill_list[index]._id) return true;
                 current_lookup_index++;
-                if (current_parent_index >= app.skill_list.length) continue outer_loop;
+                if (current_parent_index >= app.skill_list.length) return false;
                 current_lookup_req = app.skill_list[current_lookup_index];
             }
 

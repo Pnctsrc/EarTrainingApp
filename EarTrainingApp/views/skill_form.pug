@@ -70,7 +70,7 @@ block content
         div.skill-box.children-box(v-show="show_children")
           template(v-for="(skill, index) in skill_list")
             div.checkbox
-              label(:disabled-label="if_disable_children(index)" :data-toggle="if_disable_children(index)? 'tooltip' : ''" :title="if_disable_children(index)? 'Parent(including all its ancestors), requirements(including all their descendants), and descendants of the checked children cannot be the children' : ''")
+              label(:disabled-label="if_disable_children(index)" :data-toggle="if_disable_children(index)? 'tooltip' : ''" :title="if_disable_children(index)? 'Parent(including all its ancestors), requirements(including all their descendants), and descendants of the checked children cannot be the children.' : ''")
                 input(type='checkbox' name='skill_children' id='skill_children' :value='skill._id' :disabled="if_disable_children(index)" v-on:change="check_children")
                 template(v-if="!skill.parent")
                   | 
