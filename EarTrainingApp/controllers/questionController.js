@@ -126,7 +126,9 @@ exports.question_for_skill = function (req, res, next) {
                     //res.redirect(question.url);
                 //}
             } else {
-                res.status(404).send("No question found for this level of the skill.");
+                next({
+                    message: "No question found for this level of the skill."
+                });
             }
         }) 
 }
