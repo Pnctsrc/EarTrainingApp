@@ -16,8 +16,5 @@ a.not-available {
 
 footer.footer {
     width: 100%;
-    bottom: 0;
-    left: 0;
-    position: absolute;
     text-align: center;
 }
