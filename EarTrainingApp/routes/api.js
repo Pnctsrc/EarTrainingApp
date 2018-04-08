@@ -17,7 +17,7 @@ var upload = multer({
 })
 
 // POST request for a particular level of questions of the Skill (for data).
-router.post('/question_list', require_login, api_controller.questions_list);
+router.post('/question_list', api_controller.questions_list);
 
 // POST request for the answer of a question
 router.post('/question_answer', api_controller.question_answer);

@@ -120,11 +120,11 @@ exports.question_for_skill = function (req, res, next) {
             if (err) next(err);
 
             if (question) {
-                if (req.validated_token) {
+                //if (req.validated_token) {
                     res.render('same_page_question', { question: question });
-                } else {
-                    res.redirect(question.url);
-                }
+                //} else {
+                    //res.redirect(question.url);
+                //}
             } else {
                 res.status(404).send("No question found for this level of the skill.");
             }
