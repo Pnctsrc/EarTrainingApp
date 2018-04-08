@@ -9,11 +9,21 @@ block content
     b Skill description
   p #{the_skill.description}
 
-  hr
+  if the_skill.requirements.length != 0
+    hr
+    p
+      b Prerequsites
+
+    ul
+    each req in the_skill.requirements
+      li
+        a(href=req.url) #{req.name} 
+        p.req_description #{req.description}
 
   if the_skill.sub_skills.length != 0
+    hr
     p
-      b Sub-skill list
+      b Sub-skills
 
     ul
     each sub_skill in the_skill.sub_skills
@@ -21,13 +31,34 @@ block content
         a(href=sub_skill.url) #{sub_skill.name} 
         p.sub_skill_description #{sub_skill.description}
   else
-    p
-      b Exercise list
+    hr
+    
+    if (basic_count == 0 && intermediate_count == 0 && advanced_count == 0)
+      p
+        b Currently no questions for this skill
+    else 
+      p
+        b Questions
+      ul
+        if basic_count > 0
+          li
+            a(href=the_skill.url + '/questions/basic') Basic level
+        else 
+          li
+            div(data-toggle="tooltip" title="Currently no questions for this level").empty Basic level
 
-    ul
-      li
-        a(href=the_skill.url + '/questions/basic') Basic exercises.
-      li
-        a(href=the_skill.url + '/questions/intermediate') Intermediate exercises.
-      li
-        a(href=the_skill.url + '/questions/advanced') Advanced exercises.
+        if intermediate_count > 0
+          li
+            a(href=the_skill.url + '/questions/intermediate') Intermediate level
+        else 
+          li
+            div(data-toggle="tooltip" title="Currently no questions for this level").empty Intermediate level
+        
+        if advanced_count > 0
+          li
+            a(href=the_skill.url + '/questions/advanced') Advanced level
+        else 
+          li
+            div(data-toggle="tooltip" title="Currently no questions for this level").empty Advanced level
+
+  link(rel="stylesheet" type="text/css" href="/stylesheets/skill_detail.css")

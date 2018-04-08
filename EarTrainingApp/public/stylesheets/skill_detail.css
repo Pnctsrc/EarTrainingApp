@@ -1,0 +1,7 @@
+div.empty {
+    color: #ccc;
+}
+
+div.empty:hover {
+    cursor: not-allowed;
+}

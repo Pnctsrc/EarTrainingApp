@@ -38,19 +38,33 @@ exports.skill_list = function (req, res, next) {
 exports.skill_detail = function (req, res, next) {
     var skill_id = mongoose.Types.ObjectId(req.params.id); 
 
-    Skill.findById(skill_id, 'name description parent')
-        .populate('sub_skills')
-        .exec(function (err, the_skill) {
-            if (err) {
-                return next(err);
-            } else if (!the_skill) {
-                return next({
-                    message: "Skill not found",
-                })
-            } else {
-                res.render('skill_detail', { title: 'Skill Detail', the_skill: the_skill });
-            }  
+    async.parallel({
+        skill_list: function (callback) {
+            Skill.findById(skill_id, 'name description parent')
+                .populate('requirements')
+                .populate('sub_skills')
+                .exec(callback);
+        },
+        basic_count: function (callback) {
+            Question.count({ skill: skill_id, difficulty: 'basic' }, callback);
+        },
+        intermediate_count: function (callback) {
+            Question.count({ skill: skill_id, difficulty: 'intermediate' }, callback);
+        },
+        advanced_count: function (callback) {
+            Question.count({ skill: skill_id, difficulty: 'advanced' }, callback);
+        },
+    }, function (err, result) {
+        if (err) return next(err);
+        console.log(result)
+        res.render('skill_detail', {
+            title: 'Skill Detail',
+            the_skill: result.skill_list,
+            basic_count: result.basic_count,
+            intermediate_count: result.intermediate_count,
+            advanced_count: result.advanced_count
         });
+    })
 };
 
 // Display Skill create form on GET.
