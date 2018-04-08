@@ -9,6 +9,7 @@ var fs = require('fs');
 var fetch_skill_levels = require('../utils/skill_util').fetch_skill_levels;
 
 const question_images_path = "./public/question_images/";
+const question_audio_path = "./public/question_audio/";
 
 // Get the list of all questions for a specific level of a skill
 exports.questions_list = function (req, res, next) {
@@ -131,6 +132,45 @@ exports.delete_image = function (req, res, next) {
         res.status(404).send();
     } else {
         fs.unlink(question_images_path + file_name, function (err) {
+            if (err) {
+                return next(err);
+            } else {
+                res.status(200).send();
+            }
+        })
+    }
+}
+
+// Handle audio upload
+exports.upload_audio = function (req, res, next) {
+    if (!fs.existsSync(question_audio_path)) {
+        fs.mkdirSync(question_audio_path);
+    }
+
+    const file = req.files[0];
+    
+    const file_type = file.mimetype.substring(0, 5);
+    const file_extension = '.' + file.mimetype.substring(6);
+    const date = (new Date()).getTime();
+
+    let file_name = date + "_temp" + file_extension;
+
+    fs.writeFile(question_audio_path + file_name, file.buffer, function (err) {
+        if (err) {
+            next(err);
+        } else {
+            res.json(question_audio_path.substring(8) + file_name)
+        }
+    })
+};
+
+exports.delete_audio = function (req, res, next) {
+    const file_name = req.body.src.substring(req.body.src.lastIndexOf("/") + 1);
+
+    if (!fs.existsSync(question_audio_path + file_name)) {
+        res.status(404).send();
+    } else {
+        fs.unlink(question_audio_path + file_name, function (err) {
             if (err) {
                 return next(err);
             } else {

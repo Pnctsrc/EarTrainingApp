@@ -151,13 +151,22 @@ exports.question_create_get = function (req, res, next) {
 
 // Handle Question create on POST.
 exports.question_create_post = function (req, res, next) {
+    //removed the frist and last<p><br></p>
+    if (req.body.text.substring(0, 11) === '<p><br></p>') {
+        req.body.text = req.body.text.substring(11);
+    }
+
+    if (req.body.text.substring(req.body.text.length - 11) === '<p><br></p>') {
+        req.body.text = req.body.text.substring(0, req.body.text.length - 11);
+    }
+
     //sanitize html
     req.body.text = sanitizeHtml(req.body.text, {
-        allowedTags: ['p', 'a', 'ul', 'ol', 'img',
+        allowedTags: ['p', 'a', 'ul', 'ol', 'img', 'audio', 'source',
             'li', 'b', 'i', 'hr', 'br', 'span', 'iframe',
             'table', 'thead', 'tbody', 'tr', 'th', 'td'],
         allowedAttributes: false,
-        selfClosing: ['img', 'br', 'hr', 'link'],
+        selfClosing: ['img', 'br', 'hr', 'link', 'source'],
         allowedSchemes: ['http', 'https'],
         allowedSchemesAppliedToAttributes: ['href', 'src'],
         allowProtocolRelative: true,

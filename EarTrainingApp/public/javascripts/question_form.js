@@ -7,7 +7,7 @@ $(document).ready(function () {
             ['font', ['bold', 'italic', 'underline', 'clear']],
             ['para', ['ul', 'ol', 'paragraph']],
             ['table', ['table']],
-            ['insert', ['link', 'hr', 'picture', 'video']],
+            ['insert', ['link', 'hr', 'picture', 'video', 'audio']],
         ],
         placeholder: 'Write the question here...',
         tabsize: 2,
