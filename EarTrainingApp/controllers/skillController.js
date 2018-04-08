@@ -95,10 +95,12 @@ exports.skill_create_post = function (req, res, next) {
     const skill_children = req.body.skill_children;
     const skill_requirements = req.body.skill_requirements;
     const if_replace_parent = req.body.if_replace_parent == 1;
+    const user_id = req.user_id;
 
     const new_skill = {
         name: skill_name,
         description: skill_description,
+        creator: user_id,
     }
 
     if (skill_parent) {
@@ -154,7 +156,8 @@ exports.skill_create_post = function (req, res, next) {
                     name: sep_skill_name,
                     description: sep_skill_description,
                     parent: skill_doc.parent,
-                    requirements: original_parent_doc.requirements
+                    requirements: original_parent_doc.requirements,
+                    creator: user_id,
                 }
 
                 var skill = new Skill(sep_skill);

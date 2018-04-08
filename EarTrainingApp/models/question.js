@@ -25,6 +25,11 @@ var QuestionSchema = new Schema(
             required: true,
             enum: ['unlimited', '3', '4', '5']
         },
+        creator: {
+            type: Schema.ObjectId,
+            ref: 'User',
+            required: true,
+        },
     },
     {
         toJSON: {

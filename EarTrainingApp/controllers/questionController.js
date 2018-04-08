@@ -195,6 +195,7 @@ exports.question_create_post = function (req, res, next) {
                 skill: skill_id,
                 difficulty: req.body.difficulty,
                 attempts: req.body.attempts,
+                creator: req.user_id,
             }
 
             var question = new Question(new_question);

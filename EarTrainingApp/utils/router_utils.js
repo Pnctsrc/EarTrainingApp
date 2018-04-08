@@ -50,6 +50,7 @@ exports.check_role = function (req, res, next) {
                 } else {
                     res.locals.if_instructor = user_doc.role == "instructor";
                     req.if_instructor = user_doc.role == "instructor";
+                    req.user_id = user_doc._id;
                     next();
                 }
             })

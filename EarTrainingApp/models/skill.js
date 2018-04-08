@@ -28,6 +28,11 @@ var SkillSchema = new Schema(
             type: Schema.ObjectId,
             ref: 'Skill',
         },
+        creator: {
+            type: Schema.ObjectId,
+            ref: 'User',
+            required: true,
+        },
     },
     {
         toJSON: {
