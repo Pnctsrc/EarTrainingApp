@@ -13,3 +13,11 @@ a.not-available:hover {
 a.not-available {
     color: #ccc !important;
 }
+
+footer.footer {
+    width: 100%;
+    bottom: 0;
+    left: 0;
+    position: absolute;
+    text-align: center;
+}
