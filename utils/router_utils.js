@@ -44,16 +44,16 @@ exports.check_role = function (req, res, next) {
                 if (err) {
                     return next(err);
                 } else if (!user_doc) {
-                    return next({
-                        message: "User not found",
-                        status: 404,
-                    })
+                    res.locals.if_instructor = false;
+                    req.if_instructor = false;
+                    req.user_id = '';
                 } else {
                     res.locals.if_instructor = user_doc.role == "instructor";
                     req.if_instructor = user_doc.role == "instructor";
-                    req.user_id = user_doc._id;
-                    next();
+                    req.user_id = user_doc._id; 
                 }
+
+                next();
             })
     } else {
         next();
