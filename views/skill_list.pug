@@ -5,10 +5,9 @@ block content
   
   ul
   each skill in skill_list
-    if !skill.parent
-      li
-        a(href=skill.url) #{skill.name} 
-        p.skill_description #{skill.description}
+    li
+      a(href=skill.url) #{skill.name} 
+      p.skill_description #{skill.description}
 
   else
     li There are no skills.

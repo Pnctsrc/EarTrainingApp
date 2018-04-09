@@ -26,7 +26,7 @@ exports.index = function (req, res) {
 
 // Display list of all Skills.
 exports.skill_list = function (req, res, next) {
-    Skill.find({}, 'name parent description')
+    Skill.find({ parent: { $exists: false } }, 'name parent description')
         .exec(function (err, skill_list) {
             if (err) { return next(err); }
 
