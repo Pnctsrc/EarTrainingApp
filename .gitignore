@@ -262,9 +262,9 @@ __pycache__/
 *.njsproj
 
 #audio files
-EarTrainingApp/public/audio/
-EarTrainingApp/public/pics/
-EarTrainingApp/public/question_images/
-EarTrainingApp/public/question_audio/
+public/audio/
+public/pics/
+public/question_images/
+public/question_audio/
 
-EarTrainingApp/populatedb.js
+populatedb.js
