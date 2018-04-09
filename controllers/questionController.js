@@ -185,155 +185,126 @@ exports.question_create_post = function (req, res, next) {
         allowedIframeHostnames: false,
     }); 
 
-    async.parallel({
-        skill_list: function (callback) {
-            Skill.find({}, 'name parent description')
-                .populate("sub_skills")
-                .exec(function (err, result) {
-                    if (err) {
-                        callback(err, null);
-                    } else {
-                        callback(null, result);
-                    }
-                });
-        },
-        question: function (callback) {
-            const skill_id = mongoose.Types.ObjectId(req.body.skill);
+    const skill_id = mongoose.Types.ObjectId(req.body.skill);
 
-            const new_question = {
-                html: req.body.text,
-                skill: skill_id,
-                difficulty: req.body.difficulty,
-                attempts: req.body.attempts,
-                creator: req.user_id,
-            }
+    const new_question = {
+        html: req.body.text,
+        skill: skill_id,
+        difficulty: req.body.difficulty,
+        attempts: req.body.attempts,
+        creator: req.user_id,
+    }
 
-            var question = new Question(new_question);
+    var question = new Question(new_question);
 
-            question.save(function (err, result) {
-                if (err) {
-                    callback(err, null);
-                } else {
-                    callback(null, result);
-                }
-            })
-        },
-    }, function (err, results) {
+    question.save(function (err, doc) {
         if (err) {
-            return next(err);
-        }
-
-        const question_id = results.question._id;
-
-        //skill list
-        var sorted_list = [];
-        for (let skill of results.skill_list) {
-            if (!skill.parent) {
-                fetch_skill_levels(skill, 0, results.skill_list, sorted_list);
-            }
-        }
-
-        //options
-        const option_list = [];
-        const file_links = [];
-        var count = 0;
-        var correct_count = 0;
-        for (var i = 1; i <= 5; i++) {
-            const option_text = req.body["option_text_" + i];
-            const option_feedback = req.body["option_feedback_" + i];
-            const option_correct = req.body["option_correct_" + i];
-            const option_file = req.files["option_file_" + i];
-
-            if (!option_text && !option_file) continue;
-            count++;
-            if (option_correct == "true") correct_count++;
-            
-            const new_option = {
-                correct: option_correct,
-                question: question_id,
-            }
-
-            if (option_feedback) new_option.feedback = option_feedback;
-
-            if (!option_file) {
-                new_option.text = option_text;
-                new_option.category = 'text';
-            } else {
-                const file_type = option_file[0].mimetype.substring(0, 5);
-                const file_extension = '.' + option_file[0].mimetype.substring(6);
-                const file_name = question_id + i + file_extension;
-
-                if (file_type == 'audio') {
-                    if (!fs.existsSync("./public/audio/")) {
-                        fs.mkdirSync("./public/audio/");
-                    }
-
-                    new_option.category = 'audio';
-                    fs.writeFileSync('./public/audio/' + file_name, option_file[0].buffer);
-                    new_option.audio = '/audio/' + file_name;
-                    file_links.push(function (callback) {
-                        fs.unlink('./public/audio/' + file_name, callback);
-                    });
-                } else if (file_type == 'image') {
-                    if (!fs.existsSync("./public/pics/")) {
-                        fs.mkdirSync("./public/pics/");
-                    }
-
-                    new_option.category = 'picture';
-                    fs.writeFileSync('./public/pics/' + file_name, option_file[0].buffer);
-                    new_option.picture = '/pics/' + file_name;
-                    file_links.push(function (callback) {
-                        fs.unlink('./public/pics/' + file_name, callback);
-                    });
-                }
-            }
-
-            //create option list
-            var option = new Option(new_option);
-            option_list.push(new Option(new_option));
-        }
-
-        if (count < 2) {
-            file_links.push(function (callback) {
-                Question.remove({ _id: question_id }).exec(callback);
-            })
-            async.parallel(file_links, function (err) {
-                if (err) return next(err);
-                res.status(400).send("You must have at least two options for this question.");
-            })
-        } else if (correct_count < 1) {
-            file_links.push(function (callback) {
-                Question.remove({ _id: question_id }).exec(callback);
-            })
-            async.parallel(file_links, function (err) {
-                if (err) return next(err);
-                res.status(400).send("You must have at least 1 correct option.");
-            })
-        } else if (correct_count > 3) {
-            file_links.push(function (callback) {
-                Question.remove({ _id: question_id }).exec(callback);
-            })
-            async.parallel(file_links, function (err) {
-                if (err) return next(err);
-                res.status(400).send("You must have at most 3 correct options.");
-            })
+            callback(err, null);
         } else {
-            //save options
-            Option.insertMany(option_list, function (err, docs) {
-                if (err) {
-                    file_links.push(function (callback) {
-                        Question.remove({ _id: question_id }).exec(callback);
-                    })
-                    async.parallel(file_links, function (error) {
-                        if (error) return next(error);
-                        return next(err);
-                    })
-                } else {
-                    res.json(results.question.url);
+            const question_id = doc._id;
+
+            //options
+            const option_list = [];
+            const file_links = [];
+            var count = 0;
+            var correct_count = 0;
+            for (var i = 1; i <= 5; i++) {
+                const option_text = req.body["option_text_" + i];
+                const option_feedback = req.body["option_feedback_" + i];
+                const option_correct = req.body["option_correct_" + i];
+                const option_file = req.files["option_file_" + i];
+
+                if (!option_text && !option_file) continue;
+                count++;
+                if (option_correct == "true") correct_count++;
+
+                const new_option = {
+                    correct: option_correct,
+                    question: question_id,
                 }
-            })
+
+                if (option_feedback) new_option.feedback = option_feedback;
+
+                if (!option_file) {
+                    new_option.text = option_text;
+                    new_option.category = 'text';
+                } else {
+                    const file_type = option_file[0].mimetype.substring(0, 5);
+                    const file_extension = '.' + option_file[0].mimetype.substring(6);
+                    const file_name = question_id + i + file_extension;
+
+                    if (file_type == 'audio') {
+                        if (!fs.existsSync("./public/audio/")) {
+                            fs.mkdirSync("./public/audio/");
+                        }
+
+                        new_option.category = 'audio';
+                        fs.writeFileSync('./public/audio/' + file_name, option_file[0].buffer);
+                        new_option.audio = '/audio/' + file_name;
+                        file_links.push(function (callback) {
+                            fs.unlink('./public/audio/' + file_name, callback);
+                        });
+                    } else if (file_type == 'image') {
+                        if (!fs.existsSync("./public/pics/")) {
+                            fs.mkdirSync("./public/pics/");
+                        }
+
+                        new_option.category = 'picture';
+                        fs.writeFileSync('./public/pics/' + file_name, option_file[0].buffer);
+                        new_option.picture = '/pics/' + file_name;
+                        file_links.push(function (callback) {
+                            fs.unlink('./public/pics/' + file_name, callback);
+                        });
+                    }
+                }
+
+                //create option list
+                var option = new Option(new_option);
+                option_list.push(new Option(new_option));
+            }
+
+            if (count < 2) {
+                file_links.push(function (callback) {
+                    Question.remove({ _id: question_id }).exec(callback);
+                })
+                async.parallel(file_links, function (err) {
+                    if (err) return next(err);
+                    res.status(400).send("You must have at least two options for this question.");
+                })
+            } else if (correct_count < 1) {
+                file_links.push(function (callback) {
+                    Question.remove({ _id: question_id }).exec(callback);
+                })
+                async.parallel(file_links, function (err) {
+                    if (err) return next(err);
+                    res.status(400).send("You must have at least 1 correct option.");
+                })
+            } else if (correct_count > 3) {
+                file_links.push(function (callback) {
+                    Question.remove({ _id: question_id }).exec(callback);
+                })
+                async.parallel(file_links, function (err) {
+                    if (err) return next(err);
+                    res.status(400).send("You must have at most 3 correct options.");
+                })
+            } else {
+                //save options
+                Option.insertMany(option_list, function (err, docs) {
+                    if (err) {
+                        file_links.push(function (callback) {
+                            Question.remove({ _id: question_id }).exec(callback);
+                        })
+                        async.parallel(file_links, function (error) {
+                            if (error) return next(error);
+                            return next(err);
+                        })
+                    } else {
+                        res.json(doc.url);
+                    }
+                })
+            }
         }
-    });
+    })
 };
 
 // Display Question delete form on GET.
