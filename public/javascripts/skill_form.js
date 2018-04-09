@@ -2,9 +2,9 @@ var app = new Vue({
     el: '#app',
     data: {
         skill_list: [],
-        ready: false,
+        list_ready: false,
+        update_ready: false,
         current_parent: '',
-        current_parent_index: -1,
         show_parent: false,
         show_children: false,
         show_req: false,
@@ -12,6 +12,9 @@ var app = new Vue({
         show_sep_skill: false,
         requirements: {},
         children: {},
+        skill_name: '',
+        skill_description: '',
+        index_list: {},
     },
     created: function () {
         $.ajax({
@@ -19,7 +22,55 @@ var app = new Vue({
             url: '/api/sorted_skill_list',
             success: function (data) {
                 app.skill_list = data;
-                app.ready = true;
+                app.list_ready = true;
+
+                //check if it's update
+                const match_result = window.location.pathname.match(/^\/catalog\/skill\/([a-f\d]{24})\/update$/i);
+                if (match_result) {
+                    const skill_id = match_result[1];
+
+                    $.ajax({
+                        type: "POST",
+                        data: {
+                            skill: skill_id,
+                        },
+                        url: '/api/get_skill_detail',
+                        success: function (data) {
+                            const parent = data.skill.parent;
+                            const children = data.children;
+                            const requirements = data.skill.requirements;
+
+                            app.skill_name = data.skill.name;
+                            app.skill_description = data.skill.description;
+
+                            //build index list
+                            const index_list = {};
+                            for (var i = 0; i < app.skill_list.length; i++) {
+                                index_list[app.skill_list[i]._id] = i;
+                            }
+                            app.index_list = index_list;
+
+                            if (parent) app.current_parent = parent;
+
+                            if (children.length != 0) {
+                                for (var child of children) {
+                                    app.children[child] = app.skill_list[index_list[child]];
+                                }
+                            }
+
+                            if (requirements.length != 0) {
+                                for (var req of requirements) {
+                                    app.requirements[req] = app.skill_list[index_list[req]];
+                                }
+                            }
+
+                            app.update_ready = true;
+                        },
+                        dataType: 'json'
+                    })
+                } else {
+                    app.update_ready = true;
+                }
             },
             dataType: 'json'
         })
@@ -64,12 +115,6 @@ var app = new Vue({
         check_parent: function (event) {
             const skill_index = $(event.target.parentNode.parentNode).index() - 1;
 
-            if (skill_index != -1) {
-                app.current_parent_index = skill_index;
-            } else {
-                app.current_parent_index = -1;
-            }
-
             if (app.skill_list[skill_index].is_bottom) {
                 app.show_substitute = true;
             } else {
@@ -85,11 +130,9 @@ var app = new Vue({
             } else {
                 current_children[app.skill_list[child_index]._id] = app.skill_list[child_index];
             }
+
             app.children = {};
             app.children = current_children;
-        },
-        check_none: function (event) {
-            app.current_parent_index = -1;
         },
         check_req: function (event) {
             const req_index = $(event.target.parentNode.parentNode).index();
@@ -99,6 +142,7 @@ var app = new Vue({
             } else {
                 current_req[app.skill_list[req_index]._id] = app.skill_list[req_index];
             }
+
             app.requirements = {};
             app.requirements = current_req;
         },
@@ -110,9 +154,9 @@ var app = new Vue({
             return dashes;
         },
         if_ancestor_parent: function (index) {
-            if (app.current_parent_index == -1) return false;
+            if (!app.current_parent) return false;
 
-            const current_parent = app.skill_list[app.current_parent_index];
+            const current_parent = app.skill_list[app.index_list[app.current_parent]];
 
             var current_doc = current_parent;
             if (!current_doc.parent) {
@@ -167,10 +211,9 @@ var app = new Vue({
             return false;
         },
         if_descendant_parent: function (index) {
-            const current_parent = app.skill_list[app.current_parent_index];
+            const current_parent_index = app.index_list[app.current_parent]
+            const current_parent = app.skill_list[current_parent_index];
             if (current_parent._id == app.skill_list[index]._id) return true;
-
-            const current_parent_index = $($("div.parent-box input[value=\"" + current_parent._id + "\"]")[0].parentNode.parentNode).index() - 1;
 
             var current_lookup_index = current_parent_index + 1;
             if (current_lookup_index >= app.skill_list.length) return false;
@@ -186,10 +229,10 @@ var app = new Vue({
         },
         if_descendant_children: function (index, if_inclusive) {
             outer_loop: for (var child in app.children) {
+                const current_child_index = app.index_list[child];
                 const current_child = app.children[child];
                 if (current_child._id == app.skill_list[index]._id && if_inclusive) return true;
 
-                const current_child_index = $($("div.children-box input[value=\"" + current_child._id + "\"]")[0].parentNode.parentNode).index();
 
                 var current_lookup_index = current_child_index + 1;
                 if (current_lookup_index >= app.skill_list.length) continue outer_loop;
@@ -206,10 +249,9 @@ var app = new Vue({
         },
         if_descendant_requirements: function (index, if_inclusive) {
             outer_loop: for (var req in app.requirements) {
+                const current_req_index = app.index_list[req];
                 const current_req = app.requirements[req];
                 if (current_req._id == app.skill_list[index]._id && if_inclusive) return true;
-
-                const current_req_index = $($("div.req-box input[value=\"" + current_req._id + "\"]")[0].parentNode.parentNode).index();
 
                 var current_lookup_index = current_req_index + 1;
                 if (current_lookup_index >= app.skill_list.length) continue outer_loop;
@@ -241,17 +283,13 @@ var app = new Vue({
             if (app.if_descendant_requirements(index, false)) return true;
             return false;
         },
-    },
-    watch: {
-        current_parent: function (val, oldVal) {
-            if ($("div.parent-box input[value=\"" + val + "\"]")[0]) {
-                const new_index = $($("div.parent-box input[value=\"" + val + "\"]")[0].parentNode.parentNode).index() - 1;
-                app.current_parent_index = new_index;
-            } else {
-                app.current_parent_index = -1;
-            }
+        if_in_children: function (index) {
+            return app.children[app.skill_list[index]._id] != undefined;
         },
-    }
+        if_in_req: function (index) {
+            return app.requirements[app.skill_list[index]._id] != undefined;
+        },
+    },
 })
 
 $(document).ready(function () {
@@ -274,7 +312,8 @@ function validateForm() {
             return false;
         }
 
-        if (app.current_parent_index != -1 && app.skill_list[app.current_parent_index].is_bottom) {
+        const current_parent_index = app.index_list[app.current_parent];
+        if (current_parent_index && app.skill_list[current_parent_index].is_bottom) {
             if (!$("#if_replace_parent_true").is(":checked")) {
                 if (!$("#sep_skill_name").val()) {
                     window.alert("Please input the name of the separate skill.");

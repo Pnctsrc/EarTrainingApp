@@ -36,10 +36,10 @@ router.get('/skill/:id/delete', skill_controller.skill_delete_get);
 router.post('/skill/:id/delete', skill_controller.skill_delete_post);
 
 // GET request to update Skill.
-router.get('/skill/:id/update', skill_controller.skill_update_get);
+router.get('/skill/:id/update', require_login, require_role, skill_controller.skill_update_get);
 
 // POST request to update Skill.
-router.post('/skill/:id/update', skill_controller.skill_update_post);
+router.post('/skill/:id/update', require_login, require_role, skill_controller.skill_update_post);
 
 // GET request for a particular level of questions of the Skill.
 router.get('/skill/:id/questions/:level', question_controller.question_for_skill);

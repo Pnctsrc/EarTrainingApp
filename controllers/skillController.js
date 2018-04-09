@@ -36,13 +36,14 @@ exports.skill_list = function (req, res, next) {
 
 // Display detail page for a specific Skill.
 exports.skill_detail = function (req, res, next) {
-    var skill_id = mongoose.Types.ObjectId(req.params.id); 
+    const skill_id = mongoose.Types.ObjectId(req.params.id);
+    const user_id = req.user_id;
 
     async.parallel({
-        skill_list: function (callback) {
-            Skill.findById(skill_id, 'name description parent')
-                .populate('requirements')
-                .populate('sub_skills')
+        skill_doc: function (callback) {
+            Skill.findById(skill_id, 'name description parent creator')
+                .populate('requirements', 'name description')
+                .populate('sub_skills', 'name description')
                 .exec(callback);
         },
         basic_count: function (callback) {
@@ -56,14 +57,25 @@ exports.skill_detail = function (req, res, next) {
         },
     }, function (err, result) {
         if (err) return next(err);
-        console.log(result)
-        res.render('skill_detail', {
+
+        const the_skill = result.skill_doc;
+        const data = {
             title: 'Skill Detail',
-            the_skill: result.skill_list,
+            the_skill: {
+                requirements: the_skill.requirements,
+                sub_skills: the_skill.sub_skills,
+                url: the_skill.url,
+                name: the_skill.name,
+                description: the_skill.description,
+                creator: the_skill.creator,
+            },
             basic_count: result.basic_count,
             intermediate_count: result.intermediate_count,
             advanced_count: result.advanced_count
-        });
+        }
+        if (data.the_skill.creator.toString() == user_id.toString()) data.editable = true;
+        delete data.the_skill.creator;
+        res.render('skill_detail', data);
     })
 };
 
@@ -238,7 +250,8 @@ exports.skill_delete_post = function (req, res) {
 
 // Display Skill update form on GET.
 exports.skill_update_get = function (req, res) {
-	res.send('NOT IMPLEMENTED: Skill update GET');
+    const id = mongoose.Types.ObjectId(req.params.id);
+    res.render('skill_form', { title: 'Update Skill' });
 };
 
 // Handle Skill update on POST.

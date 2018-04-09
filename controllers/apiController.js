@@ -224,3 +224,50 @@ exports.sorted_skill_list = function (req, res, next) {
             })
         });
 }
+
+exports.skill_detail = function (req, res, next) {
+    const skill_id = mongoose.Types.ObjectId(req.body.skill);
+    const user_id = mongoose.Types.ObjectId(req.user_id);
+
+    async.parallel({
+        skill_doc: function (callback) {
+            Skill.findById(skill_id)
+                .lean()
+                .exec(function (err, doc) {
+                    if (err) {
+                        next(err);
+                    } else {
+                        //make sure it's the same user
+                        if (doc.creator.toString() !== user_id.toString()) {
+                            next({
+                                message: "You can't modify a skill created by another instructor."
+                            })
+                        } else {
+                            callback(null, doc);
+                        }
+                    }
+                })
+        },
+        children: function (callback) {
+            Skill.find({ parent: skill_id }, "_id").lean().exec(callback);
+        },
+    }, function (err, results) {
+        if (err) {
+            next(err);
+        } else {
+            const data = {
+                skill: results.skill_doc,
+                children: [],
+            }
+            delete data.skill.id;
+            delete data.skill.creator;
+            delete data.skill.__v;
+
+            for (var child of results.children) {
+                data.children.push(child._id);
+            }
+
+            res.json(data);
+        }
+    })
+}

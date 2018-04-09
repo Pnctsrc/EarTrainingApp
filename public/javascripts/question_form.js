@@ -98,8 +98,6 @@ var app = new Vue({
                             const file_extension = current_option.content[0].type.substring(6);
                             if (file_type != "audio" && file_type != "image") {
                                 window.alert("Option " + option_number + " must have an audio or image file.");
-                                console.log(file_type);
-                                console.log(file_extension);
                                 return false;
                             } else if (!file_extension.match(/^(mp3|wav|jpg|jpeg|png)$/gi)) {
                                 window.alert("Option " + option_number + " must have one of the following file types: mp3, wav, jpg, jpeg, or png.");
@@ -209,7 +207,6 @@ var app = new Vue({
             app.options.splice(option_index, 1);
         },
         file_input: function (event) {
-            console.log()
             const option_index = $(event.target.parentNode.parentNode.parentNode.parentNode).index();
             if (event.target.files.length == 0) {
                 app.options[option_index].content = "";

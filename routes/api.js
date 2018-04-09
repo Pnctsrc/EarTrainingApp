@@ -34,6 +34,9 @@ router.post('/upload_audio', require_login, require_role, upload.array('audio', 
 // POST request for audio delete
 router.post('/delete_audio', require_login, require_role, api_controller.delete_audio);
 
+// POST request for skill detail
+router.post('/get_skill_detail', require_login, require_role, api_controller.skill_detail);
+
 // GET request for sorted skill list
 router.get('/sorted_skill_list', require_login, require_role, api_controller.sorted_skill_list);
 
