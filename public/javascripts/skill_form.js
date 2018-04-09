@@ -69,6 +69,13 @@ var app = new Vue({
                         dataType: 'json'
                     })
                 } else {
+                    //build index list
+                    const index_list = {};
+                    for (var i = 0; i < app.skill_list.length; i++) {
+                        index_list[app.skill_list[i]._id] = i;
+                    }
+                    app.index_list = index_list;
+
                     app.update_ready = true;
                 }
             },
