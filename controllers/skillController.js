@@ -44,7 +44,20 @@ exports.skill_detail = function (req, res, next) {
             Skill.findById(skill_id, 'name description parent creator')
                 .populate('requirements', 'name description')
                 .populate('sub_skills', 'name description')
-                .exec(callback);
+                .exec(function (err, doc) {
+                    if (err) {
+                        console.log(err);
+                        callback(err, null);
+                    } else {
+                        if (!doc) {
+                            callback({
+                                message: "Skill not found",
+                            }, null)
+                        } else {
+                            callback(null, doc);
+                        }
+                    }
+                });
         },
         basic_count: function (callback) {
             Question.count({ skill: skill_id, difficulty: 'basic' }, callback);
