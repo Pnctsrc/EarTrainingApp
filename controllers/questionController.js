@@ -32,7 +32,10 @@ exports.question_detail = function (req, res, next) {
                     if (question) {
                         callback(null, question)
                     } else {
-                        next();//this part should later be moved to validation section
+                        next({
+                            status: 404,
+                            message: "Question not found."
+                        });
                     }
                 })
         }
@@ -102,7 +105,10 @@ exports.question_detail = function (req, res, next) {
                 if (question) {
                     res.render('question_detail', { question: question, options: question.options });
                 } else {
-                    next();
+                    next({
+                        status: 404,
+                        message: "Question not found."
+                    });
                 }
             })
     }
@@ -127,7 +133,8 @@ exports.question_for_skill = function (req, res, next) {
                 //}
             } else {
                 next({
-                    message: "No question found for this level of the skill."
+                    message: "No question found for this level of the skill.",
+                    status: 404,
                 });
             }
         }) 

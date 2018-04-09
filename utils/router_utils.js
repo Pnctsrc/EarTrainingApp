@@ -45,7 +45,8 @@ exports.check_role = function (req, res, next) {
                     return next(err);
                 } else if (!user_doc) {
                     return next({
-                        message: "User not found"
+                        message: "User not found",
+                        status: 404,
                     })
                 } else {
                     res.locals.if_instructor = user_doc.role == "instructor";

@@ -52,6 +52,7 @@ exports.skill_detail = function (req, res, next) {
                         if (!doc) {
                             callback({
                                 message: "Skill not found",
+                                status:404,
                             }, null)
                         } else {
                             callback(null, doc);

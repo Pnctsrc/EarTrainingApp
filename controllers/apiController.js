@@ -22,7 +22,7 @@ exports.questions_list = function (req, res, next) {
         .exec(function (err, questions) {
             if (err) return next(err);
 
-            if (questions) {
+            if (questions.length != 0) {
                 res.json(questions);
             } else {
                 res.status(404).send("This level has no questions yet.");
@@ -186,42 +186,46 @@ exports.sorted_skill_list = function (req, res, next) {
         .lean()
         .exec(function (err, skill_list) {
             if (err) { return next(err); }
-            var sorted_list = [];
 
-            for (let skill of skill_list) {
-                if (!skill.parent) {
-                    fetch_skill_levels(skill, 0, skill_list, sorted_list);
-                }
-            }
-
-            var max_level = 0;
-            for (let skill of sorted_list) {
-                if (skill.level > max_level) max_level = skill.level;
-            }
-
-            const populate_depth = {
-                path: 'parent',
-            };
-            function deep_populate(current_depth, n) {
-                n++;
-                if (n <= max_level) {
-                    current_depth.populate = {
-                        path: "parent",
+            if (skill_list.length != 0) {
+                var sorted_list = [];
+                for (let skill of skill_list) {
+                    if (!skill.parent) {
+                        fetch_skill_levels(skill, 0, skill_list, sorted_list);
                     }
-
-                    deep_populate(current_depth.populate, n);
-                } 
-            }
-
-            deep_populate(populate_depth, 0);
-
-            Skill.populate(sorted_list, populate_depth, function (err, results) {
-                if (err) {
-                    return next(err);
-                } else {
-                    res.json(results);
                 }
-            })
+
+                var max_level = 0;
+                for (let skill of sorted_list) {
+                    if (skill.level > max_level) max_level = skill.level;
+                }
+
+                const populate_depth = {
+                    path: 'parent',
+                };
+                function deep_populate(current_depth, n) {
+                    n++;
+                    if (n <= max_level) {
+                        current_depth.populate = {
+                            path: "parent",
+                        }
+
+                        deep_populate(current_depth.populate, n);
+                    }
+                }
+
+                deep_populate(populate_depth, 0);
+
+                Skill.populate(sorted_list, populate_depth, function (err, results) {
+                    if (err) {
+                        return next(err);
+                    } else {
+                        res.json(results);
+                    }
+                })
+            } else {
+                res.json(skill_list);
+            }
         });
 }
 
@@ -237,8 +241,9 @@ exports.skill_detail = function (req, res, next) {
                     if (err) {
                         next(err);
                     } else {
-                        //make sure it's the same user
-                        if (doc.creator.toString() !== user_id.toString()) {
+                        if (!doc) {
+                            res.status(404).send("Skill not found");
+                        } else if (doc.creator.toString() !== user_id.toString()) {//make sure it's the same user
                             next({
                                 message: "You can't modify a skill created by another instructor."
                             })

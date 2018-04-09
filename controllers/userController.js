@@ -43,7 +43,7 @@ exports.user_profile_get = function (req, res, next) {
             if (err) {
                 return next(err);
             } else if (!user_doc) {
-                return next({ message: "User not found" })
+                return next({ message: "User not found", status: 404 })
             } else {
                 data = {
                     name: user_doc.name,
