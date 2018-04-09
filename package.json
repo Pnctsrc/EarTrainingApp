@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "async": "^2.6.0",
+    "aws-sdk": "^2.223.1",
     "body-parser": "^1.15.0",
     "cookie-parser": "^1.4.0",
     "debug": "^2.6.9",
