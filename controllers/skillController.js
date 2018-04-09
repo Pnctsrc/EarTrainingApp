@@ -46,7 +46,6 @@ exports.skill_detail = function (req, res, next) {
                 .populate('sub_skills', 'name description')
                 .exec(function (err, doc) {
                     if (err) {
-                        console.log(err);
                         callback(err, null);
                     } else {
                         if (!doc) {

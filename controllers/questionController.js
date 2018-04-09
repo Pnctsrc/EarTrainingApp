@@ -59,7 +59,10 @@ exports.question_detail = function (req, res, next) {
                         option_id_list.push(current_option_id);
                         callback(null, current_option_id);
                     } else {
-                        next();
+                        next({
+                            status: 404,
+                            message: "Option not found."
+                        });
                     }
                 })
             } 
