@@ -86,7 +86,10 @@ exports.skill_detail = function (req, res, next) {
             intermediate_count: result.intermediate_count,
             advanced_count: result.advanced_count
         }
-        if (data.the_skill.creator.toString() == user_id.toString()) data.editable = true;
+
+        if (user_id) {
+            if (data.the_skill.creator.toString() == user_id.toString()) data.editable = true;
+        }
         delete data.the_skill.creator;
         res.render('skill_detail', data);
     })
