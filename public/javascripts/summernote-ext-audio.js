@@ -125,22 +125,39 @@
 
                         $.ajax({
                             type: "POST",
-                            url: '/api/upload_audio',
+                            url: '/api/upload_audio_s3_signature',
                             data: data,
                             cache: false,
                             contentType: false,
                             processData: false,
-                            success: function (url) {
-                                const audio_node_html = [
-                                    '<p>',
-                                        '<audio controls>',
-                                            '<source src="' + url + '">',
-                                        '</audio>',
-                                    '</p>',
-                                ].join('');
-                                const audio_node = $(audio_node_html);
-                                $('#text_input').summernote('insertNode', audio_node[0]);
-                                $('#audio_panel').modal('hide'); 
+                            success: function (signature) {
+                                $.ajax({
+                                    type: 'PUT',
+                                    url: signature.signedRequest,
+                                    contentType: current_audio_file.type,
+                                    processData: false,
+                                    data: current_audio_file,
+                                    success: function (upload_result) {
+                                        const audio_node_html = [
+                                            '<p>',
+                                                '<audio controls>',
+                                                    '<source src="' + signature.url + '">',
+                                                '</audio>',
+                                            '</p>',
+                                        ].join('');
+                                        const audio_node = $(audio_node_html);
+                                        $('#text_input').summernote('insertNode', audio_node[0]);
+                                        $('#audio_panel').modal('hide'); 
+                                    },
+                                    error: function (err) {
+                                        $("#audio_file_input").val('');
+                                        window.alert(err.statusText + " [" + err.status + "]");
+                                        $(".audio-close-button").removeAttr("disabled", false);
+                                        $(".audio-insert-button").removeAttr("disabled", false);
+                                        $("#audio_url_input").removeAttr("disabled", false);
+                                        $(".audio-insert-button")[0].innerText = "Insert";
+                                    },
+                                })
                             },
                             error: function (err) {
                                 $("#audio_file_input").val('');

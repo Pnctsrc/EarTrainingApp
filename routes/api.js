@@ -29,7 +29,10 @@ router.post('/upload_image', require_login, require_role, upload.array('images')
 router.post('/delete_image', require_login, require_role, api_controller.delete_image);
 
 // POST request for audio upload
-router.post('/upload_audio', require_login, require_role, upload.array('audio', 1), api_controller.upload_audio);
+//router.post('/upload_audio', require_login, require_role, upload.array('audio', 1), api_controller.upload_audio);
+
+// POST request for audio upload using Amazon S3
+router.post('/upload_audio_s3_signature', require_login, require_role, upload.array('audio', 1), api_controller.upload_audio_s3_signature);
 
 // POST request for audio delete
 router.post('/delete_audio', require_login, require_role, api_controller.delete_audio);
