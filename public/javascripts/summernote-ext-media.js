@@ -72,15 +72,20 @@
                     $("#audio_file_input").val('');
                     $("#audio_url_input").val('');
 
+                    if ($("#audio_url_input").val()) {
+                        $(".audio-insert-button").removeAttr("disabled", false);
+                    } else {
+                        $(".audio-insert-button").prop("disabled", true);
+                    }
+
                     $(".audio-close-button").removeAttr("disabled", false);
-                    $(".audio-insert-button").removeAttr("disabled", false);
                     $("#audio_url_input").removeAttr("disabled", false);
                     $(".audio-insert-button")[0].innerText = "Insert";
                 })
 
                 $("button.audio-insert-button").click(function () {
                     const url_input = $("#audio_url_input").val();
-                    const file_input = $("#audio_file_input").prop("files")[0];
+                    if (!url_input) return;
 
                     const audio_node_html = [
                         '<p>',
@@ -93,6 +98,14 @@
                     $('#text_input').summernote('insertNode', audio_node[0]);
                     $('#audio_panel').modal('hide');
                 });
+
+                $("#audio_url_input").on('change keyup paste mouseup', function () {
+                    if ($("#audio_url_input").val()) {
+                        $(".audio-insert-button").removeAttr("disabled", false);
+                    } else {
+                        $(".audio-insert-button").prop("disabled", true);
+                    }
+                })
 
                 $("#audio_file_input").change(function () {
                     const files = $(this).prop("files");
@@ -231,17 +244,32 @@
                     $("#image_file_input").val('');
                     $("#image_url_input").val('');
 
+                    if ($("#image_url_input").val()) {
+                        $(".image-insert-button").removeAttr("disabled", false);
+                    } else {
+                        $(".image-insert-button").prop("disabled", true);
+                    }
+
                     $(".image-close-button").removeAttr("disabled", false);
-                    $(".image-insert-button").removeAttr("disabled", false);
                     $("#image_url_input").removeAttr("disabled", false);
                     $(".image-insert-button")[0].innerText = "Insert";
                 })
 
                 $("button.image-insert-button").click(function () {
                     const url_input = $("#image_url_input").val();
+                    if (!url_input) return;
+
                     $('#text_input').summernote('insertImage', url_input);
                     $('#image_panel').modal('hide');
                 });
+
+                $("#image_url_input").on('change keyup paste mouseup', function () {
+                    if ($("#image_url_input").val()) {
+                        $(".image-insert-button").removeAttr("disabled", false);
+                    } else {
+                        $(".image-insert-button").prop("disabled", true);
+                    }
+                })
 
                 $("#image_file_input").change(function () {
                     const files = $(this).prop("files");
