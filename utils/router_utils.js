@@ -62,7 +62,10 @@ exports.check_role = function (req, res, next) {
 
 exports.require_login = function (req, res, next) {
     if (!req.validated_token) {
-        return next({message:"Unauthorized"});
+        return next({
+            message: "Unauthorized",
+            status: 401,
+        });
     } else {
         next();
     }
@@ -70,7 +73,10 @@ exports.require_login = function (req, res, next) {
 
 exports.require_role = function (req, res, next) {
     if (!req.if_instructor) {
-        return next({ message: "Unauthorized" });
+        return next({
+            message: "Unauthorized",
+            status: 401,
+        });
     } else {
         next();
     }
