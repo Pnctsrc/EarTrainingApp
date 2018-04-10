@@ -132,6 +132,39 @@ exports.upload_image = function (req, res, next) {
     })
 };
 
+exports.upload_image_s3_signature = function (req, res, next) {
+    const file = req.files[0];
+
+    const file_type = file.mimetype.substring(0, 5);
+    const file_extension = '.' + file.mimetype.substring(6);
+    const date = (new Date()).getTime();
+
+    const file_name = date + "_temp" + file_extension;
+    const bucket_name = process.env.AWS_S3_BUCKET_NAME;
+    const s3_key = "Question_Images/" + file_name;
+
+    const s3 = new AWS.S3();
+    const s3Params = {
+        Bucket: bucket_name,
+        Key: s3_key,
+        Expires: 60,
+        ContentType: file.mimetype,
+        ACL: 'public-read',
+    };
+
+    s3.getSignedUrl('putObject', s3Params, (err, data) => {
+        if (err) {
+            next(err);
+        } else {
+            const returnData = {
+                signedRequest: data,
+                url: `https://${bucket_name}.s3.amazonaws.com/${s3_key}`
+            };
+            res.json(returnData);
+        }
+    });
+};
+
 exports.delete_image = function (req, res, next) {
     const file_name = req.body.src.substring(req.body.src.lastIndexOf("/") + 1);
 
