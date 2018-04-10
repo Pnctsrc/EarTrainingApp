@@ -14,11 +14,9 @@ $(document).ready(function () {
         height: 250,
         callbacks: {
             onMediaDelete: function ($img) {
-                console.log("Image delete.");
-                return;
                 $.ajax({
                     type: "POST",
-                    url: "/api/delete_image",
+                    url: "/api/delete_image_s3",
                     data: {
                         src: $img[0].src,
                     },

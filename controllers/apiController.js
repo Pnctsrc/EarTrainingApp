@@ -188,6 +188,26 @@ exports.delete_image = function (req, res, next) {
     }
 }
 
+exports.delete_image_s3 = function (req, res, next) {
+    const file_name = req.body.src.substring(req.body.src.lastIndexOf("/") + 1);
+    const bucket_name = process.env.AWS_S3_BUCKET_NAME;
+    const s3_key = "Question_Images/" + file_name;
+
+    const s3 = new AWS.S3();
+    const s3Params = {
+        Bucket: bucket_name,
+        Key: s3_key,
+    };
+
+    s3.deleteObject(s3Params, function (err, data) {
+        if (err) {
+            next(err);
+        } else {
+            res.status(200).send();
+        }
+    });
+}
+
 // Handle audio upload
 exports.upload_audio = function (req, res, next) {
     if (!fs.existsSync(question_audio_path)) {
