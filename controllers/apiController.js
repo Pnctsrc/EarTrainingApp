@@ -133,6 +133,13 @@ exports.upload_image = function (req, res, next) {
 };
 
 exports.upload_image_s3_signature = function (req, res, next) {
+    if (!req.files) {
+        return next({
+            status: 400,
+            message: "No file found.",
+        })
+    }
+
     const file = req.files[0];
 
     const file_type = file.mimetype.substring(0, 5);
@@ -205,6 +212,13 @@ exports.upload_audio = function (req, res, next) {
 };
 
 exports.upload_audio_s3_signature = function (req, res, next) {
+    if (!req.files) {
+        return next({
+            status: 400,
+            message: "No file found.",
+        })
+    }
+
     const file = req.files[0];
 
     const file_type = file.mimetype.substring(0, 5);
