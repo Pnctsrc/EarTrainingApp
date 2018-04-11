@@ -17,7 +17,7 @@ async function verify_function(google_token, req, res, next) {
         payload: payload
     }
 
-    req.validated_token = result;
+    res.locals.validated_token = result;
     res.locals.logged_in = true;
     next();
 }
@@ -26,7 +26,7 @@ exports.validate_token = function validate_token(req, res, next) {
     const google_token = req.body.token ? req.body.token : req.cookies.google_token;
 
     if (!google_token) {//The user is neither logged in or trying to log in
-        res.locals.logged_false = true;
+        res.locals.logged_in = false;
         next();
     } else {
         verify_function(google_token, req, res, next)
@@ -38,19 +38,17 @@ exports.validate_token = function validate_token(req, res, next) {
 }
 
 exports.check_role = function (req, res, next) {
-    if (req.validated_token) {
-        User.findOne({ user_id: req.validated_token.payload.sub })
+    if (res.locals.validated_token) {
+        User.findOne({ user_id: res.locals.validated_token.payload.sub })
             .exec(function (err, user_doc) {
                 if (err) {
                     return next(err);
                 } else if (!user_doc) {
                     res.locals.if_instructor = false;
-                    req.if_instructor = false;
-                    req.user_id = '';
+                    res.locals.user_id = '';
                 } else {
                     res.locals.if_instructor = user_doc.role == "instructor";
-                    req.if_instructor = user_doc.role == "instructor";
-                    req.user_id = user_doc._id; 
+                    res.locals.user_id = user_doc._id; 
                 }
 
                 next();
@@ -61,7 +59,7 @@ exports.check_role = function (req, res, next) {
 }
 
 exports.require_login = function (req, res, next) {
-    if (!req.validated_token) {
+    if (!res.locals.validated_token) {
         return next({
             message: "Unauthorized",
             status: 401,
@@ -72,7 +70,7 @@ exports.require_login = function (req, res, next) {
 }
 
 exports.require_role = function (req, res, next) {
-    if (!req.if_instructor) {
+    if (!res.locals.if_instructor) {
         return next({
             message: "Unauthorized",
             status: 401,

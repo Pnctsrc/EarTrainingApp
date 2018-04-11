@@ -5,7 +5,7 @@ const async = require('async');
 
 // Authenticate the user
 exports.autenticate = function (req, res, next) {
-    const token = req.validated_token;
+    const token = res.locals.validated_token;
 
     User.findOne({ user_id: token.payload.sub }).exec(function (err, user_doc) {
         if (err) {
@@ -38,7 +38,7 @@ exports.autenticate = function (req, res, next) {
 
 // Get user profile
 exports.user_profile_get = function (req, res, next) {
-    User.findOne({ user_id: req.validated_token.payload.sub })
+    User.findOne({ user_id: res.locals.validated_token.payload.sub })
         .exec(function (err, user_doc) {
             if (err) {
                 return next(err);

@@ -338,7 +338,7 @@ exports.sorted_skill_list = function (req, res, next) {
 
 exports.skill_detail = function (req, res, next) {
     const skill_id = mongoose.Types.ObjectId(req.body.skill);
-    const user_id = mongoose.Types.ObjectId(req.user_id);
+    const user_id = mongoose.Types.ObjectId(res.locals.user_id);
 
     async.parallel({
         skill_doc: function (callback) {

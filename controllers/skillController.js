@@ -37,7 +37,7 @@ exports.skill_list = function (req, res, next) {
 // Display detail page for a specific Skill.
 exports.skill_detail = function (req, res, next) {
     const skill_id = mongoose.Types.ObjectId(req.params.id);
-    const user_id = req.user_id;
+    const user_id = res.locals.user_id;
 
     async.parallel({
         skill_doc: function (callback) {
@@ -123,7 +123,7 @@ exports.skill_create_post = function (req, res, next) {
     const skill_children = req.body.skill_children;
     const skill_requirements = req.body.skill_requirements;
     const if_replace_parent = req.body.if_replace_parent == 1;
-    const user_id = req.user_id;
+    const user_id = res.locals.user_id;
 
     const new_skill = {
         name: skill_name,

@@ -120,8 +120,8 @@ exports.question_detail = function (req, res, next) {
 
 //Display questions for a specific Skill.
 exports.question_for_skill = function (req, res, next) {
-    var skill_id = mongoose.Types.ObjectId(req.params.id);
-    var question_level = req.params.level;
+    const skill_id = mongoose.Types.ObjectId(req.params.id);
+    const question_level = req.params.level;
 
     Question.count({ difficulty: question_level, skill: skill_id }, function (err, result) {
         if (err) return next(err);
@@ -186,7 +186,7 @@ exports.question_create_post = function (req, res, next) {
         skill: skill_id,
         difficulty: req.body.difficulty,
         attempts: req.body.attempts,
-        creator: req.user_id,
+        creator: res.locals.user_id,
     }
 
     var question = new Question(new_question);
