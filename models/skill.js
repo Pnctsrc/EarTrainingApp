@@ -36,11 +36,9 @@ var SkillSchema = new Schema(
     },
     {
         toJSON: {
-            virtuals: true
+            virtuals: true,
+            versionKey: false,
         },
-        toObject: {
-            virtuals: true
-        }
     }
 );
 

@@ -1,8 +1,9 @@
 var Question = require('../models/question');
 var Option = require('../models/option');
 var Skill = require('../models/skill');
-var mongoose = require('mongoose');
+var ExerciseSession = require('../models/exercise_session');
 
+var mongoose = require('mongoose');
 var async = require('async');
 var fs = require('fs');
 
@@ -22,6 +23,7 @@ AWS.config.credentials = new AWS.CognitoIdentityCredentials({
 exports.questions_list = function (req, res, next) {
     var skill_id = mongoose.Types.ObjectId(req.body.skill);
     var question_level = req.body.level;
+
 
     Question.find({ difficulty: question_level, skill: skill_id })
         .populate('options')
@@ -373,7 +375,6 @@ exports.skill_detail = function (req, res, next) {
             }
             delete data.skill.id;
             delete data.skill.creator;
-            delete data.skill.__v;
 
             for (var child of results.children) {
                 data.children.push(child._id);

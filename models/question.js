@@ -33,7 +33,8 @@ var QuestionSchema = new Schema(
     },
     {
         toJSON: {
-            virtuals: true
+            virtuals: true,
+            versionKey: false,
         }
     }
 );
