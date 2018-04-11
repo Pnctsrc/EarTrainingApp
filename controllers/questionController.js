@@ -123,24 +123,18 @@ exports.question_for_skill = function (req, res, next) {
     var skill_id = mongoose.Types.ObjectId(req.params.id);
     var question_level = req.params.level;
 
-    Question.findOne({ difficulty: question_level, skill: skill_id }, '_id attempts')
-        .populate('skill')
-        .exec(function (err, question) {
-            if (err) next(err);
+    Question.count({ difficulty: question_level, skill: skill_id }, function (err, result) {
+        if (err) return next(err);
 
-            if (question) {
-                //if (req.validated_token) {
-                    res.render('same_page_question', { question: question });
-                //} else {
-                    //res.redirect(question.url);
-                //}
-            } else {
-                next({
-                    message: "No question found for this level of the skill.",
-                    status: 404,
-                });
-            }
-        }) 
+        if (result != 0) {
+            res.render('same_page_question');
+        } else {
+            next({
+                message: "No question found for this level of the skill.",
+                status: 404,
+            });
+        }
+    })
 }
 
 // Display Question create form on GET.

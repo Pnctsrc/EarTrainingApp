@@ -22,7 +22,8 @@ var app = new Vue({
         current_attempt: 1,
         current_index: 0,
         max_attempts: 0,
-        feedback:[],
+        feedback: [],
+        skill: {},
     },
     created: function () {
         const url_path = window.location.pathname.split('/');
@@ -44,6 +45,7 @@ var app = new Vue({
                     app.question_html = app.questions[0].html;
                     app.options = shuffle(app.questions[0].options);
                     app.max_attempts = app.questions[0].attempts == "unlimited" ? '0' : app.questions[0].attempts;
+                    app.skill = app.questions[0].skill;
                 } else {
                     app.no_question = true;
                 }
@@ -78,6 +80,7 @@ var app = new Vue({
                 data: {
                     options: options,
                     question: app.questions[app.current_index]._id,
+                    current_attempt: app.current_attempt,
                 },
                 success: function (data) {
                     //clear saved answers and feedback

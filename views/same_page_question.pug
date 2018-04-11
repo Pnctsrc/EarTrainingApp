@@ -2,17 +2,16 @@ extends layout
 
 block content 
   div#app
-    h1 Question ({{current_index + 1}}/{{questions.length}}) for skill - 
-      a(href=question.skill.url) #{question.skill.name}
-
-    hr
-    p 
-      b Question text
-    span(v-html="question_html")
-
-    hr
-    
     template(v-if="question_html !== ''")
+      h1 Question ({{current_index + 1}}/{{questions.length}}) for skill - 
+        a(:href="skill.url") {{skill.name}}
+
+      hr
+      p 
+        b Question text
+      span(v-html="question_html")
+
+      hr
       p
         b Options (Remaining attempts: {{max_attempts == '0' ? "unlimited" : max_attempts - current_attempt + 1}})
 
