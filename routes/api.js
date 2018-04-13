@@ -16,6 +16,12 @@ var upload = multer({
     }
 })
 
+// POST request to update a session
+router.post('/update_session', require_login, api_controller.update_session);
+
+// POST request to delete a session
+router.post('/delete_session', require_login, api_controller.delete_session);
+
 // POST request for a particular level of questions of the Skill (for data).
 router.post('/question_list', api_controller.questions_list);
 

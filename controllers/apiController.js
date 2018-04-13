@@ -19,24 +19,214 @@ AWS.config.credentials = new AWS.CognitoIdentityCredentials({
     IdentityPoolId: process.env.AWS_IDENTITY_POOL_ID,
 });
 
+exports.update_session = function (req, res, next) {
+    const questions = req.body['questions[]'];
+    const session_id = mongoose.Types.ObjectId(req.body.session_id);
+
+    ExerciseSession.findById(session_id, function (err, session) {
+        if (err) {
+            return next(err);
+        } else {
+            if (session.user_id.toString() != res.locals.user_id.toString()) {
+                return next({
+                    status: 400,
+                    message: "Not the same user."
+                })
+            }
+
+            if (questions) {
+                if (questions.length == 0) {
+                    return next({
+                        status: 400,
+                        message: "Empty question list."
+                    });
+                } else if (session.order_set) {
+                    return next({
+                        status: 400,
+                        message: "The order of the questions is already set."
+                    });
+                } else {
+                    session.questions = questions;
+                    session.order_set = true;
+                    session.save(function (err) {
+                        if (err) return next(err);
+                        res.json({});
+                    })
+                }
+            } else {//the user clicks skip
+                if (!session.order_set) {
+                    return next({
+                        status: 400,
+                        message: "The order of the questions is not set yet."
+                    });
+                }
+
+                var current_index = session.current_index + 1;
+
+                if (current_index >= session.questions.length && session.order_set) {
+                    //save the report
+
+                    session.remove(function (err) {
+                        if (err) {
+                            return next(err);
+                        } else {
+                            res.json({ if_refresh: true });
+                        }
+                    })
+                } else {
+                    session.update({
+                        current_index: current_index,
+                        current_attempt: 1,
+                    }, function (err) {
+                        if (err) return next(err);
+                        res.json({});
+                    })
+                }
+            }
+        }
+    })
+}
+
+exports.delete_session = function (req, res, next) {
+    const session_id = mongoose.Types.ObjectId(req.body.session_id);
+
+    ExerciseSession.findById(session_id, function (err, session) {
+        if (err) {
+            return next(err);
+        } else {
+            if (session.user_id.toString() != res.locals.user_id.toString()) {
+                return next({
+                    status: 400,
+                    message: "Not the same user."
+                })
+            } else if (!session) {
+                return next({
+                    status: 404,
+                    message: "Session not found."
+                })
+            } else {
+                session.remove(function (err) {
+                    if (err) {
+                        return next(err);
+                    } else {
+                        res.json({});
+                    }
+                })
+            }
+        }
+    })
+}
+
 // Get the list of all questions for a specific level of a skill
 exports.questions_list = function (req, res, next) {
     var skill_id = mongoose.Types.ObjectId(req.body.skill);
     var question_level = req.body.level;
 
+    //check session
+    if (res.locals.logged_in) {
+        async.waterfall([
+            function (callback) {
+                ExerciseSession.findOne({
+                    user_id: res.locals.user_id,
+                    skill_id: skill_id,
+                    category: question_level
+                }, "questions current_index current_attempt", function (err, result) {
+                    if (err) {
+                        callback(err, null);
+                    } else {
+                        callback(null, result);
+                    }
+                })
+            },
+            function (session, callback) {
+                if (session && session.questions.length != 0) {
+                    Question.find({ _id: { $in: session.questions } })
+                        .populate('options')
+                        .populate('skill')
+                        .exec(function (err, questions) {
+                            if (err) {
+                                callback(err, null);
+                            } else if (questions.length != 0) {
+                                callback(null, session, questions);
+                            } else {
+                                res.status(404).send("This session has no questions.");
+                            }
+                        })
+                } else {
+                    Question.find({ difficulty: question_level, skill: skill_id })
+                        .populate('options')
+                        .populate('skill')
+                        .exec(function (err, questions) {
+                            if (err) { 
+                                callback(err, null);
+                            } else if (questions.length != 0) {
+                                callback(null, session, questions);
+                            } else {
+                                res.status(404).send("This level has no questions yet.");
+                            }
+                        })
+                }
+            },
+            function (session, questions, callback) {
+                if (!session) {
+                    const new_session = {
+                        user_id: res.locals.user_id,
+                        skill_id: skill_id,
+                        category: question_level,
+                        questions: [],
+                        current_index: 0,
+                        current_attempt: 1,
+                        order_set: false,
+                    }
 
-    Question.find({ difficulty: question_level, skill: skill_id })
-        .populate('options')
-        .populate('skill')
-        .exec(function (err, questions) {
-            if (err) return next(err);
+                    const session = new ExerciseSession(new_session);
+                    session.save(function (err, session_doc) {
+                        if (err) {
+                            callback(err, null);
+                        } else {
+                            const session_obj = session_doc.toJSON({
+                                virtuals: true,
+                                versionKey: false,
+                            });
 
-            if (questions.length != 0) {
-                res.json(questions);
+                            callback(null, {
+                                questions: session_obj.questions,
+                                current_attempt: 1,
+                                current_index: 0,
+                                _id: session_obj._id,
+                            }, questions);
+                        }
+                    });
+                } else {
+                    callback(null, session, questions);
+                }
+            },
+        ], function (err, session, questions) {
+            if (err) {
+                next(err);
             } else {
-                res.status(404).send("This level has no questions yet.");
+                res.json({
+                    session: session,
+                    questions: questions,
+                });
             }
         })
+    } else {
+        Question.find({ difficulty: question_level, skill: skill_id })
+            .populate('options')
+            .populate('skill')
+            .exec(function (err, questions) {
+                if (err) return next(err);
+
+                if (questions.length != 0) {
+                    res.json({
+                        questions: questions,
+                    });
+                } else {
+                    res.status(404).send("This level has no questions yet.");
+                }
+            })
+    }
 };
 
 // Check the answer and feedback of a question
@@ -81,6 +271,7 @@ exports.question_answer = function (req, res, next) {
                 return next(err);
             } else {
                 var correct_answers = 0;
+                var if_perfect = false;
                 for (var option of results.docs) {
                     if (option.correct) correct_answers++;
                 }
@@ -91,9 +282,72 @@ exports.question_answer = function (req, res, next) {
 
                 if (correct_answers != results.count && results.count > 1) {
                     result.not_all = true;
+                } else if (correct_answers == results.count && results.count == user_options.length) {
+                    if_perfect = true;
+                    result.if_perfect = true;
                 }
 
-                res.json(result);
+                //check session
+                const user_id = res.locals.user_id;
+                if (user_id) {
+                    const session_id = mongoose.Types.ObjectId(req.body.session_id);
+                    var current_index = Number(req.body.current_index);
+                    var current_attempt = Number(req.body.current_attempt) + 1;
+                    const questions = req.body["questions[]"];
+                    if (if_perfect) {
+                        current_index++;
+                        current_attempt = 1;
+                    }
+
+                    //find the session first
+                    ExerciseSession.findById(session_id, function (err, session) {
+                        if (err) {
+                            return next(err);
+                        } else {
+                            if (session.user_id.toString() != res.locals.user_id.toString()) {
+                                return next({
+                                    status: 400,
+                                    message: "Not the same user."
+                                })
+                            }
+
+                            if (current_index >= session.questions.length && session.order_set) {
+                                //save the report
+
+                                session.remove(function (err) {
+                                    if (err) {
+                                        return next(err);
+                                    } else {
+                                        result.if_refresh = true;
+                                        res.json(result);
+                                    }
+                                })
+                            } else {
+                                session.update({
+                                    current_index: current_index,
+                                    current_attempt: current_attempt,
+                                }, function (err) {
+                                    if (err) {
+                                        return next(err);
+                                    } else {
+                                        if (questions && session.questions.length == 0 && !session.order_set) {
+                                            session.questions = questions;
+                                            session.order_set = true;
+                                            session.save(function (err) {
+                                                if (err) return next(err);
+                                                
+                                            })
+                                        }
+
+                                        res.json(result);
+                                    }
+                                })
+                            }
+                        }
+                    })
+                } else {
+                    res.json(result);
+                }
             }
         })
     }
