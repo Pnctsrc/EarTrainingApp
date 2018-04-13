@@ -260,35 +260,47 @@ var app = new Vue({
             event.preventDefault();
             $("button.function-button").attr("disabled", true);
 
-            //The session already skipped on the server if the current result is perfect
-            if ($("button.submit-button").html() != "Perfect") {
-                $.ajax({
-                    type: "POST",
-                    url: '/api/update_session',
-                    data: {
-                        session_id: app.session._id,
-                    },
-                    success: function (data) {
-                        if (data.if_refresh) {
-                            window.location = '';
-                        } else {
-                            //clear saved answers and feedback
-                            for (var option of app.options) {
-                                Vue.set(option, "if_correct", undefined);
-                                app.feedback = [];
-                            }
-                            app.current_attempt = 1;
-                            app.current_index++;
+            if (app.session) {
+                //The session already skipped on the server if the current result is perfect
+                if ($("button.submit-button").html() != "Perfect") {
+                    $.ajax({
+                        type: "POST",
+                        url: '/api/update_session',
+                        data: {
+                            session_id: app.session._id,
+                        },
+                        success: function (data) {
+                            if (data.if_refresh) {
+                                window.location = '';
+                            } else {
+                                //clear saved answers and feedback
+                                for (var option of app.options) {
+                                    Vue.set(option, "if_correct", undefined);
+                                    app.feedback = [];
+                                }
+                                app.current_attempt = 1;
+                                app.current_index++;
 
+                                $("button.function-button").removeAttr("disabled", false);
+                            }
+                        },
+                        error: function (err) {
+                            window.alert(err.message);
                             $("button.function-button").removeAttr("disabled", false);
-                        }
-                    },
-                    error: function (err) {
-                        window.alert(err.message);
-                        $("button.function-button").removeAttr("disabled", false);
-                    },
-                    dataType: 'json',
-                })
+                        },
+                        dataType: 'json',
+                    })
+                } else {
+                    //clear saved answers and feedback
+                    for (var option of app.options) {
+                        Vue.set(option, "if_correct", undefined);
+                        app.feedback = [];
+                    }
+                    app.current_attempt = 1;
+                    app.current_index++;
+
+                    $("button.function-button").removeAttr("disabled", false);
+                }
             } else {
                 //clear saved answers and feedback
                 for (var option of app.options) {
@@ -336,24 +348,31 @@ var app = new Vue({
             const question_length = app.questions.length;
 
             if (val == question_length) {
+                if (app.session) {
+                    $.ajax({
+                        type: "POST",
+                        url: '/api/delete_session',
+                        data: data,
+                        success: function () {
+                            window.location = '';
+                        },
+                        error: function (err) {
+                            window.alert(err.message);
+                            $("button.function-button").removeAttr("disabled", false);
+                            $("button.submit-button")[0].innerText = "Submit";
+                        },
+                        dataType: 'json',
+                    })
+                } else {
+                    app.questions = shuffle(app.questions);
+                    app.question_html = app.questions[0].html;
+                    app.options = app.questions[0].options;
+                    app.max_attempts = app.questions[0].attempts == "unlimited" ? '0' : app.questions[0].attempts;
+                    app.current_index = 0;
+                }
                 const data = {
                     skill_id: app.skill._id,
                 }
-
-                $.ajax({
-                    type: "POST",
-                    url: '/api/delete_session',
-                    data: data,
-                    success: function () {
-                        window.location = '';
-                    },
-                    error: function (err) {
-                        window.alert(err.message);
-                        $("button.function-button").removeAttr("disabled", false);
-                        $("button.submit-button")[0].innerText = "Submit";
-                    },
-                    dataType: 'json',
-                })
             } else {
                 app.question_html = app.questions[val].html;
                 app.options = app.questions[val].options;
