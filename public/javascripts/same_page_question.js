@@ -104,16 +104,38 @@ var app = new Vue({
                     app.no_question = true;
                 }
             },
-            dataType: 'json'
-        }).fail(function (err) {
-            window.alert(err.message);
-        });
+            error: function (err) {
+                window.alert(err.message);
+            },
+            dataType: 'json',
+        })
+    },
+    updated: function () {
+        if (app.current_index == app.questions.length - 1 && app.session != '') {
+            $("button.skip-button").prop("disabled", true);
+        }
     },
     methods: {
         submit: function (event) {
             event.preventDefault();
+            $("input[type='checkbox']").prop("disabled", true);
+
+            if ($("button.submit-button").html() == "Try again") {
+                //clear saved answers and feedback
+                for (var option of app.options) {
+                    Vue.set(option, "if_correct", undefined);
+                    app.feedback = [];
+                }
+
+                app.options = shuffle(app.options);
+                $("button.submit-button").html("Submit");
+                $("input[type='checkbox']").removeAttr("checked");
+                $("input[type='checkbox']").removeAttr("disabled");
+                return;
+            }
+
             $("button.function-button").attr("disabled", true);
-            $("button.submit-button")[0].innerText = "Checking...";
+            $("button.submit-button").html("Checking...");
 
             //collect answers
             const options = [];
@@ -123,8 +145,9 @@ var app = new Vue({
 
             if (options.length == 0) {
                 window.alert("Please make at least one choice.");
-                $("button.function-button").removeAttr("disabled", false);
-                $("button.submit-button")[0].innerText = "Submit";
+                $("button.function-button").removeAttr("disabled");
+                $("input[type='checkbox']").removeAttr("disabled");
+                $("button.submit-button").html("Submit");
                 return;
             }
 
@@ -149,11 +172,6 @@ var app = new Vue({
                     url: '/api/question_answer',
                     data: data,
                     success: function (data) {
-                        if (data.if_refresh) {
-                            window.location = '';
-                            return;
-                        }
-
                         //clear saved answers and feedback
                         for (var option of app.options) {
                             Vue.set(option, "if_correct", undefined);
@@ -187,19 +205,19 @@ var app = new Vue({
                         app.current_attempt++;
 
                         if (!data.if_perfect) {
-                            $("button.function-button").removeAttr("disabled", false);
-                            $("button.submit-button")[0].innerText = "Submit";
+                            $("button.function-button").removeAttr("disabled");
+                            $("button.submit-button").html("Try again");
                         } else {
-                            $("button.skip-button").removeAttr("disabled", false);
-                            $("button.end-session-button").removeAttr("disabled", false);
-                            $("button.submit-button")[0].innerText = "Perfect";
-                        }
-                        
+                            $("button.skip-button").removeAttr("disabled");
+                            $("button.end-session-button").removeAttr("disabled");
+                            $("button.submit-button").html("Perfect");
+                        }     
                     },
                     error: function (err) {
                         window.alert(err.message);
-                        $("button.function-button").removeAttr("disabled", false);
-                        $("button.submit-button")[0].innerText = "Submit";
+                        $("button.function-button").removeAttr("disabled");
+                        $("input[type='checkbox']").removeAttr("disabled");
+                        $("button.submit-button").html("Submit");
                     },
                     dataType: 'json',
                 })
@@ -244,13 +262,20 @@ var app = new Vue({
                         }
 
                         app.current_attempt++;
-                        $("button.function-button").removeAttr("disabled", false);
-                        $("button.submit-button")[0].innerText = "Submit";
+                        if (!data.if_perfect) {
+                            $("button.function-button").removeAttr("disabled");
+                            $("button.submit-button").html("Try again");
+                        } else {
+                            $("button.skip-button").removeAttr("disabled");
+                            $("button.end-session-button").removeAttr("disabled");
+                            $("button.submit-button").html("Perfect");
+                        }
                     },
                     error: function (err) {
                         window.alert(err.message);
-                        $("button.function-button").removeAttr("disabled", false);
-                        $("button.submit-button")[0].innerText = "Submit";
+                        $("button.function-button").removeAttr("disabled");
+                        $("input[type='checkbox']").removeAttr("disabled");
+                        $("button.submit-button").html("Submit");
                     },
                     dataType: 'json',
                 })
@@ -281,12 +306,12 @@ var app = new Vue({
                                 app.current_attempt = 1;
                                 app.current_index++;
 
-                                $("button.function-button").removeAttr("disabled", false);
+                                $("button.function-button").removeAttr("disabled");
                             }
                         },
                         error: function (err) {
                             window.alert(err.message);
-                            $("button.function-button").removeAttr("disabled", false);
+                            $("button.function-button").removeAttr("disabled");
                         },
                         dataType: 'json',
                     })
@@ -299,7 +324,7 @@ var app = new Vue({
                     app.current_attempt = 1;
                     app.current_index++;
 
-                    $("button.function-button").removeAttr("disabled", false);
+                    $("button.function-button").removeAttr("disabled");
                 }
             } else {
                 //clear saved answers and feedback
@@ -310,28 +335,32 @@ var app = new Vue({
                 app.current_attempt = 1;
                 app.current_index++;
 
-                $("button.function-button").removeAttr("disabled", false);
+                $("button.function-button").removeAttr("disabled");
             }
         },
         end: function (event) {
             event.preventDefault();
             $("button.function-button").attr("disabled", true);
 
-            $.ajax({
-                type: "POST",
-                url: '/api/delete_session',
-                data: {
-                    session_id: app.session._id,
-                },
-                success: function () {
-                    window.location = '';
-                },
-                error: function (err) {
-                    window.alert(err.message);
-                    $("button.function-button").removeAttr("disabled", false);
-                },
-                dataType: 'json',
-            })
+            if ($("button.submit-button").html() != "Perfect") {
+                $.ajax({
+                    type: "POST",
+                    url: '/api/delete_session',
+                    data: {
+                        session_id: app.session._id,
+                    },
+                    success: function () {
+                        window.location = '';
+                    },
+                    error: function (err) {
+                        window.alert(err.message);
+                        $("button.function-button").removeAttr("disabled");
+                    },
+                    dataType: 'json',
+                })
+            } else {
+                window.location = '';
+            }
         },
         check_option: function () {
             var limit = 3;
@@ -347,37 +376,27 @@ var app = new Vue({
         current_index: function (val, oldVal) {
             const question_length = app.questions.length;
 
+            if (app.session) {//can't skip when i = length - 1
+                if (val == question_length - 1) {
+                    $("button.skip-button").prop("disabled", true);
+                }
+            }
+
             if (val == question_length) {
-                if (app.session) {
-                    $.ajax({
-                        type: "POST",
-                        url: '/api/delete_session',
-                        data: data,
-                        success: function () {
-                            window.location = '';
-                        },
-                        error: function (err) {
-                            window.alert(err.message);
-                            $("button.function-button").removeAttr("disabled", false);
-                            $("button.submit-button")[0].innerText = "Submit";
-                        },
-                        dataType: 'json',
-                    })
-                } else {
-                    app.questions = shuffle(app.questions);
-                    app.question_html = app.questions[0].html;
-                    app.options = app.questions[0].options;
-                    app.max_attempts = app.questions[0].attempts == "unlimited" ? '0' : app.questions[0].attempts;
-                    app.current_index = 0;
-                }
-                const data = {
-                    skill_id: app.skill._id,
-                }
+                app.questions = shuffle(app.questions);
+                app.question_html = app.questions[0].html;
+                app.options = shuffle(app.questions[0].options);
+                app.max_attempts = app.questions[0].attempts == "unlimited" ? '0' : app.questions[0].attempts;
+                app.current_index = 0;
             } else {
                 app.question_html = app.questions[val].html;
-                app.options = app.questions[val].options;
+                app.options = shuffle(app.questions[val].options);
                 app.max_attempts = app.questions[val].attempts == "unlimited" ? '0' : app.questions[val].attempts;
             }
+
+            $("input[type='checkbox']").removeAttr(":checked");
+            $("input[type='checkbox']").removeAttr("disabled");
+            $("button.submit-button").html("Submit");
         }
     }
 })
