@@ -31,20 +31,32 @@ var ReportSchema = new Schema(
             type: Number,
             required: true,
         },
-        skips_before_try: {
+        skip_before_try: {
             type: Boolean,
             required: true,
         },
-        skips_before_correct: {
+        skip_before_correct: {
             type: Number,
             required: true,
         },
-        skips_before_perfect: {
+        skip_before_perfect: {
             type: Number,
             required: true,
         },
         current_attempt: {
             type: Number,
+            required: true,
+        },
+        is_final: {
+            type: Boolean,
+            required: true,
+        },
+        has_correct: {
+            type: Boolean,
+            required: true,
+        },
+        is_perfect: {
+            type: Boolean,
             required: true,
         },
     }

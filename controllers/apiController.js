@@ -2,6 +2,8 @@ var Question = require('../models/question');
 var Option = require('../models/option');
 var Skill = require('../models/skill');
 var ExerciseSession = require('../models/exercise_session');
+var Report = require('../models/report');
+
 
 var mongoose = require('mongoose');
 var async = require('async');
@@ -23,98 +25,248 @@ exports.update_session = function (req, res, next) {
     const questions = req.body['questions[]'];
     const session_id = mongoose.Types.ObjectId(req.body.session_id);
 
-    ExerciseSession.findById(session_id, function (err, session) {
-        if (err) {
-            return next(err);
-        } else {
-            if (session.user_id.toString() != res.locals.user_id.toString()) {
-                return next({
-                    status: 400,
-                    message: "Not the same user."
-                })
-            }
-
-            if (questions) {
-                if (questions.length == 0) {
-                    return next({
-                        status: 400,
-                        message: "Empty question list."
-                    });
-                } else if (session.order_set) {
-                    return next({
-                        status: 400,
-                        message: "The order of the questions is already set."
-                    });
+    async.waterfall([
+        function (callback) {
+            ExerciseSession.findById(session_id, function (err, session) {
+                if (err) {
+                    callback(err, null, null);
                 } else {
-                    session.questions = questions;
-                    session.order_set = true;
-                    session.save(function (err) {
-                        if (err) return next(err);
-                        res.json({});
-                    })
-                }
-            } else {//the user clicks skip
-                if (!session.order_set) {
-                    return next({
-                        status: 400,
-                        message: "The order of the questions is not set yet."
-                    });
-                }
+                    if (session.user_id.toString() != res.locals.user_id.toString()) {
+                        callback({
+                            status: 400,
+                            message: "Not the same user."
+                        }, null, null);
+                        return;
+                    } 
 
-                var current_index = session.current_index + 1;
-
-                if (current_index >= session.questions.length && session.order_set) {
-                    //save the report
-
-                    session.remove(function (err) {
-                        if (err) {
-                            return next(err);
+                    if (questions) {
+                        if (questions.length == 0) {
+                            callback({
+                                status: 400,
+                                message: "Empty question list."
+                            }, null, null);
+                        } else if (session.order_set) {
+                            callback({
+                                status: 400,
+                                message: "The order of the questions is already set."
+                            }, null, null);
                         } else {
-                            res.json({ if_refresh: true });
+                            session.questions = questions;
+                            session.order_set = true;
+                            session.save(function (err) {
+                                if (err) {
+                                    callback(err, null, null);
+                                } else {
+                                    callback(null, session, false);
+                                }
+                            });
                         }
-                    })
-                } else {
-                    session.update({
-                        current_index: current_index,
-                        current_attempt: 1,
-                    }, function (err) {
-                        if (err) return next(err);
-                        res.json({});
-                    })
+                    } else {//the user clicks skip
+                        if (!session.order_set) {
+                            callback({
+                                status: 400,
+                                message: "The order of the questions is not set yet."
+                            }, null);
+                            return;
+                        }
+
+                        var current_index = session.current_index + 1;
+
+                        if (current_index >= session.questions.length && session.order_set) {
+                            session.remove(function (err) {
+                                if (err) {
+                                    callback(err, null, null);
+                                } else {
+                                    callback(null, session, true);
+                                }
+                            })
+                        } else {
+                            session.update({
+                                current_index: current_index,
+                                current_attempt: 1,
+                            }, function (err) {
+                                if (err) {
+                                    callback(err, null, null);
+                                } else {
+                                    callback(null, session, false);
+                                }         
+                            })
+                        }
+                    }
                 }
+            })
+        },
+        function (session, if_refresh, callback) {
+            //find the report
+            const current_index = session.current_index;
+            const question_id = session.questions[current_index];
+            const user_id = res.locals.user_id;
+            const current_date = (new Date).toISOString().split('T')[0];
+
+            Report.findOne({ user_id: user_id, question_id: question_id, date: current_date })
+                .exec(function (err, report) {
+                    if (err) {
+                        callback(err, null);
+                    } else if (report) {
+                        if (report.is_final) {
+                            callback(null, if_refresh);
+                            return;
+                        }
+                        const update_content = { is_final: true };
+
+                        //if any correct answers
+                        if (!report.has_correct) update_content.skip_before_correct = session.current_attempt - 1;
+
+                        //if perfect 
+                        if (!report.is_perfect) update_content.skip_before_perfect = session.current_attempt - 1;
+
+                        //if before try
+                        if (session.current_attempt == 1) update_content.skip_before_try = true;
+
+                        Report.findByIdAndUpdate(report._id, update_content, callback);
+                    } else {
+                        const new_report = {
+                            date: current_date,
+                            question_id: question_id,
+                            user_id: user_id,
+                            type: "exercise",
+                            attempts_until_correct: 0,
+                            attempts_until_perfect: 0,
+                            skip_before_try: true,
+                            skip_before_correct: 0,
+                            skip_before_perfect: 0,
+                            current_attempt: 0,
+                            is_final: true,
+                            has_correct: false,
+                            is_perfect: false,
+                        }
+
+                        const report = new Report(new_report);
+                        report.save(function (err) {
+                            if (err) {
+                                callback(err, null);
+                            } else {
+                                callback(null, if_refresh);
+                            }
+                        });
+                    }
+                })
+        }
+    ], function (err, if_refresh) {
+        if (err) {
+            next(err);
+        } else {
+            if (if_refresh) {
+                res.json({ if_refresh: true });
+            } else {
+                res.json({});
             }
         }
-    })
+    }) 
 }
 
 exports.delete_session = function (req, res, next) {
     const session_id = mongoose.Types.ObjectId(req.body.session_id);
 
-    ExerciseSession.findById(session_id, function (err, session) {
+    async.waterfall([
+        function (callback) {
+            ExerciseSession.findById(session_id, function (err, session) {
+                if (err) {
+                    callback(err, null);
+                } else if (session) {
+                    if (session.user_id.toString() != res.locals.user_id.toString()) {
+                        callback({
+                            status: 400,
+                            message: "Not the same user."
+                        }, null)
+                    } else if (!session) {
+                        callback({
+                            status: 404,
+                            message: "Session not found."
+                        }, null)
+                    } else {
+                        session.remove(function (err) {
+                            if (err) {
+                                callback(err, null);
+                            } else {
+                                callback(null, session);
+                            }
+                        });
+                    }
+                } else {
+                    callback(null, null);
+                }
+            })
+        },
+        function (session, callback) {
+            if (!session) {//already deleted for exceeding the max attempts
+                callback(null, null);
+                return;
+            }
+
+            const current_index = session.current_index;
+            const question_id = session.questions[current_index];
+            const user_id = res.locals.user_id;
+            const current_date = (new Date).toISOString().split('T')[0];
+
+            Report.findOne({ user_id: user_id, question_id: question_id, date: current_date })
+                .exec(function (err, report) {
+                    if (err) {
+                        callback(err, null);
+                    } else if (report) {
+                        if (report.is_final) {
+                            callback(null);
+                            return;
+                        }
+                        const update_content = { is_final: true };
+
+                        //if any correct answers
+                        if (!report.has_correct) update_content.skip_before_correct = session.current_attempt - 1;
+
+                        //if perfect 
+                        if (!report.is_perfect) update_content.skip_before_perfect = session.current_attempt - 1;
+
+                        //if before try
+                        if (session.current_attempt == 1) update_content.skip_before_try = true;
+
+                        Report.findByIdAndUpdate(report._id, update_content, callback);
+                    } else {
+                        const new_report = {
+                            date: current_date,
+                            question_id: question_id,
+                            user_id: user_id,
+                            type: "exercise",
+                            attempts_until_correct: 0,
+                            attempts_until_perfect: 0,
+                            skip_before_try: true,
+                            skip_before_correct: 0,
+                            skip_before_perfect: 0,
+                            current_attempt: 0,
+                            is_final: true,
+                            has_correct: false,
+                            is_perfect: false,
+                        }
+
+                        const report = new Report(new_report);
+                        report.save(function (err) {
+                            if (err) {
+                                callback(err, null);
+                            } else {
+                                callback(null);
+                            }
+                        });
+                    }
+                })
+        }
+    ], function (err) {
         if (err) {
             return next(err);
         } else {
-            if (session.user_id.toString() != res.locals.user_id.toString()) {
-                return next({
-                    status: 400,
-                    message: "Not the same user."
-                })
-            } else if (!session) {
-                return next({
-                    status: 404,
-                    message: "Session not found."
-                })
-            } else {
-                session.remove(function (err) {
-                    if (err) {
-                        return next(err);
-                    } else {
-                        res.json({});
-                    }
-                })
-            }
+            res.json({});
         }
     })
+
+    
 }
 
 // Get the list of all questions for a specific level of a skill
@@ -157,7 +309,7 @@ exports.questions_list = function (req, res, next) {
                         .populate('options')
                         .populate('skill')
                         .exec(function (err, questions) {
-                            if (err) { 
+                            if (err) {
                                 callback(err, null);
                             } else if (questions.length != 0) {
                                 callback(null, session, questions);
@@ -230,6 +382,34 @@ exports.questions_list = function (req, res, next) {
 };
 
 // Check the answer and feedback of a question
+function update_report(callback, report, if_perfect, correct_answers, if_max_attempt) {
+    const update_content = {};
+    if (report.is_final) {
+        callback(null);
+        return;
+    }
+
+    //if any correct answer
+    if (!report.has_correct) {
+        update_content.attempts_until_correct = ++report.attempts_until_correct;
+        if (correct_answers > 0) update_content.has_correct = true;
+    }
+
+    //if perfect 
+    if (!report.is_perfect) {
+        update_content.attempts_until_perfect = ++report.attempts_until_perfect;
+        if (if_perfect) update_content.is_perfect = true;
+    }
+
+    //if final
+    if (!report.is_final) {
+        update_content.current_attempt = ++report.current_attempt;
+        if (if_perfect || if_max_attempt) update_content.is_final = true;
+    }
+
+    Report.findByIdAndUpdate(report._id, update_content, callback);
+}
+
 exports.question_answer = function (req, res, next) {
     const body_options = req.body["options[]"];
 
@@ -247,25 +427,16 @@ exports.question_answer = function (req, res, next) {
             }
         }
 
-        async.series({
+        async.parallel({
             docs: function (callback) {
-                Option.find({ _id: { $in: user_options } }, "feedback correct", function (err, docs) {
-                    if (err) {
-                        callback(err, null);
-                    } else {
-                        callback(null, docs)
-                    }
-                });
+                Option.find({ _id: { $in: user_options } }, "feedback correct", callback);
             },
             count: function (callback) {
-                Option.count({ question: question_id, correct: true }, function (err, count) {
-                    if (err) {
-                        callback(err, null);
-                    } else {
-                        callback(null, count);
-                    }
-                })
-            }
+                Option.count({ question: question_id, correct: true }, callback)
+            },
+            question: function (callback) {
+                Question.findById(question_id, "attempts", callback);
+            },
         }, function (err, results) {
             if (err) {
                 return next(err);
@@ -287,62 +458,109 @@ exports.question_answer = function (req, res, next) {
                     result.if_perfect = true;
                 }
 
-                //check session
+                //check session and handle report
                 const user_id = res.locals.user_id;
                 if (user_id) {
                     const session_id = mongoose.Types.ObjectId(req.body.session_id);
-                    var current_index = Number(req.body.current_index);
-                    var current_attempt = Number(req.body.current_attempt) + 1;
+                    const current_index = Number(req.body.current_index);
+                    var new_index = Number(req.body.current_index);
+                    const current_attempt = Number(req.body.current_attempt);
+                    var new_attempt = current_attempt + 1;
                     const questions = req.body["questions[]"];
-                    if (if_perfect) {
-                        current_index++;
-                        current_attempt = 1;
-                    }
+                    const question_doc = results.question;
+                    const if_max_attempt = question_doc.attemps != "unlimited" && new_attempt > Number(question_doc.attempts);
+                    if (if_perfect || if_max_attempt) {
+                        new_index++;
+                        new_attempt = 1;
+                    } 
 
-                    //find the session first
-                    ExerciseSession.findById(session_id, function (err, session) {
+                    async.waterfall([
+                        function (callback) {
+                            //find the session first
+                            ExerciseSession.findById(session_id, function (err, session) {
+                                if (err) {
+                                    return next(err);
+                                } else {
+                                    if (session.user_id.toString() != res.locals.user_id.toString()) {
+                                        callback({
+                                            status: 400,
+                                            message: "Not the same user."
+                                        }, null)
+                                        return;
+                                    }
+
+                                    if (new_index >= session.questions.length && session.order_set) {
+                                        session.remove(function (err) {
+                                            if (err) {
+                                                callback(err, null);
+                                            } else {
+                                                result.if_refresh = true;
+                                                callback(null, null);
+                                            }
+                                        })
+                                    } else {
+                                        session.update({
+                                            current_index: new_index,
+                                            current_attempt: new_attempt,
+                                        }, function (err) {
+                                            if (err) {
+                                                return next(err);
+                                            } else {
+                                                if (questions && session.questions.length == 0 && !session.order_set) {
+                                                    session.questions = questions;
+                                                    session.order_set = true;
+                                                    session.save(callback);
+                                                } else {
+                                                    callback(null, session);
+                                                }
+                                            }
+                                        })
+                                    }
+                                }
+                            })
+                        },
+                        function (session, callback) {
+                            //find the report
+                            const current_date = (new Date).toISOString().split('T')[0];
+                            Report.findOne({ user_id: user_id, question_id: question_id, date: current_date })
+                                .exec(function (err, report) {
+                                    if (err) {
+                                        return next(err);
+                                    } else if (report) {
+                                        update_report(callback, report, if_perfect, correct_answers, if_max_attempt);   
+                                    } else {
+                                        const new_report = {
+                                            date: current_date,
+                                            question_id: question_id,
+                                            user_id: user_id,
+                                            type: "exercise",
+                                            attempts_until_correct: 0,
+                                            attempts_until_perfect: 0,
+                                            skip_before_try: false,
+                                            skip_before_correct: 0,
+                                            skip_before_perfect: 0,
+                                            current_attempt: session.current_attempt - 1, 
+                                            is_final: false,
+                                            has_correct: false,
+                                            is_perfect: false,
+                                        }
+
+                                        const report = new Report(new_report);
+                                        report.save(function (err) {
+                                            if (err) {
+                                                callback(err, null);
+                                            } else {
+                                                update_report(callback, report, if_perfect, correct_answers); 
+                                            }
+                                        });
+                                    }
+                                })
+                        },
+                    ], function (err) {
                         if (err) {
                             return next(err);
                         } else {
-                            if (session.user_id.toString() != res.locals.user_id.toString()) {
-                                return next({
-                                    status: 400,
-                                    message: "Not the same user."
-                                })
-                            }
-
-                            if (current_index >= session.questions.length && session.order_set) {
-                                //save the report
-
-                                session.remove(function (err) {
-                                    if (err) {
-                                        return next(err);
-                                    } else {
-                                        result.if_refresh = true;
-                                        res.json(result);
-                                    }
-                                })
-                            } else {
-                                session.update({
-                                    current_index: current_index,
-                                    current_attempt: current_attempt,
-                                }, function (err) {
-                                    if (err) {
-                                        return next(err);
-                                    } else {
-                                        if (questions && session.questions.length == 0 && !session.order_set) {
-                                            session.questions = questions;
-                                            session.order_set = true;
-                                            session.save(function (err) {
-                                                if (err) return next(err);
-                                                
-                                            })
-                                        }
-
-                                        res.json(result);
-                                    }
-                                })
-                            }
+                            res.json(result);
                         }
                     })
                 } else {
@@ -366,7 +584,7 @@ exports.upload_image = function (req, res, next) {
         const file_extension = '.' + file.mimetype.substring(6);
         const date = (new Date()).getTime();
 
-        let file_name =  date + "_" + index++ + "_temp" + file_extension;
+        let file_name = date + "_" + index++ + "_temp" + file_extension;
 
         file_list.push(function (callback) {
             fs.writeFile(question_images_path + file_name, file.buffer, function (err) {
@@ -471,7 +689,7 @@ exports.upload_audio = function (req, res, next) {
     }
 
     const file = req.files[0];
-    
+
     const file_type = file.mimetype.substring(0, 5);
     const file_extension = '.' + file.mimetype.substring(6);
     const date = (new Date()).getTime();
@@ -523,7 +741,7 @@ exports.upload_audio_s3_signature = function (req, res, next) {
                 url: `https://${bucket_name}.s3.amazonaws.com/${s3_key}`
             };
             res.json(returnData);
-        } 
+        }
     });
 };
 
