@@ -28,6 +28,7 @@ exports.update_session = function (req, res, next) {
     async.waterfall([
         function (callback) {
             ExerciseSession.findById(session_id, function (err, session) {
+                const order_set = session.order_set;
                 if (err) {
                     callback(err, null, null);
                 } else {
@@ -35,7 +36,7 @@ exports.update_session = function (req, res, next) {
                         callback({
                             status: 400,
                             message: "Not the same user."
-                        }, null, null);
+                        }, null, null, null);
                         return;
                     } 
 
@@ -44,20 +45,20 @@ exports.update_session = function (req, res, next) {
                             callback({
                                 status: 400,
                                 message: "Empty question list."
-                            }, null, null);
+                            }, null, null, null);
                         } else if (session.order_set) {
                             callback({
                                 status: 400,
                                 message: "The order of the questions is already set."
-                            }, null, null);
+                            }, null, null, null);
                         } else {
                             session.questions = questions;
                             session.order_set = true;
                             session.save(function (err) {
                                 if (err) {
-                                    callback(err, null, null);
+                                    callback(err, null, null, null);
                                 } else {
-                                    callback(null, session, false);
+                                    callback(null, session, false, false);
                                 }
                             });
                         }
@@ -75,9 +76,9 @@ exports.update_session = function (req, res, next) {
                         if (current_index >= session.questions.length && session.order_set) {
                             session.remove(function (err) {
                                 if (err) {
-                                    callback(err, null, null);
+                                    callback(err, null, null, null);
                                 } else {
-                                    callback(null, session, true);
+                                    callback(null, session, true, true);
                                 }
                             })
                         } else {
@@ -86,9 +87,9 @@ exports.update_session = function (req, res, next) {
                                 current_attempt: 1,
                             }, function (err) {
                                 if (err) {
-                                    callback(err, null, null);
+                                    callback(err, null, null, true);
                                 } else {
-                                    callback(null, session, false);
+                                    callback(null, session, false, true);
                                 }         
                             })
                         }
@@ -96,7 +97,7 @@ exports.update_session = function (req, res, next) {
                 }
             })
         },
-        function (session, if_refresh, callback) {
+        function (session, if_refresh, order_set, callback) {
             //find the report
             const current_index = session.current_index;
             const question_id = session.questions[current_index];
@@ -125,30 +126,34 @@ exports.update_session = function (req, res, next) {
 
                         Report.findByIdAndUpdate(report._id, update_content, callback);
                     } else {
-                        const new_report = {
-                            date: current_date,
-                            question_id: question_id,
-                            user_id: user_id,
-                            type: "exercise",
-                            attempts_until_correct: 0,
-                            attempts_until_perfect: 0,
-                            skip_before_try: true,
-                            skip_before_correct: 0,
-                            skip_before_perfect: 0,
-                            current_attempt: 0,
-                            is_final: true,
-                            has_correct: false,
-                            is_perfect: false,
-                        }
-
-                        const report = new Report(new_report);
-                        report.save(function (err) {
-                            if (err) {
-                                callback(err, null);
-                            } else {
-                                callback(null, if_refresh);
+                        if (!order_set) {
+                            callback(null, if_refresh);
+                        } else {
+                            const new_report = {
+                                date: current_date,
+                                question_id: question_id,
+                                user_id: user_id,
+                                type: "exercise",
+                                attempts_until_correct: 0,
+                                attempts_until_perfect: 0,
+                                skip_before_try: true,
+                                skip_before_correct: 0,
+                                skip_before_perfect: 0,
+                                current_attempt: 0,
+                                is_final: true,
+                                has_correct: false,
+                                is_perfect: false,
                             }
-                        });
+
+                            const report = new Report(new_report);
+                            report.save(function (err) {
+                                if (err) {
+                                    callback(err, null);
+                                } else {
+                                    callback(null, if_refresh);
+                                }
+                            });
+                        }
                     }
                 })
         }
@@ -265,8 +270,6 @@ exports.delete_session = function (req, res, next) {
             res.json({});
         }
     })
-
-    
 }
 
 // Get the list of all questions for a specific level of a skill
