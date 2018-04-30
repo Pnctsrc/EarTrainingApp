@@ -342,25 +342,21 @@ var app = new Vue({
             event.preventDefault();
             $("button.function-button").attr("disabled", true);
 
-            if ($("button.submit-button").html() != "Perfect") {
-                $.ajax({
-                    type: "POST",
-                    url: '/api/delete_session',
-                    data: {
-                        session_id: app.session._id,
-                    },
-                    success: function () {
-                        window.location = '';
-                    },
-                    error: function (err) {
-                        window.alert(err.message);
-                        $("button.function-button").removeAttr("disabled");
-                    },
-                    dataType: 'json',
-                })
-            } else {
-                window.location = '';
-            }
+            $.ajax({
+                type: "POST",
+                url: '/api/delete_session',
+                data: {
+                    session_id: app.session._id,
+                },
+                success: function () {
+                    window.location = '';
+                },
+                error: function (err) {
+                    window.alert(err.message);
+                    $("button.function-button").removeAttr("disabled");
+                },
+                dataType: 'json',
+            })
         },
         check_option: function () {
             var limit = 3;
