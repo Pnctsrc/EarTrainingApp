@@ -7,27 +7,100 @@ var app = new Vue({
         difficulty: '',
         no_data: false,
         first_request_made: false,
+        report_overview: {},
+        overview_ready: false,
+        no_overview: false,
+        year_list: [],
+        month_list: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        retrieved_data: {},
+        month_checked: '',
+        year_checked: '',
+    },
+    created: function () {
+        $.ajax({
+            type: "POST",
+            url: '/report/get_overview_data',
+            success: function (data) {
+                //group by skill
+                for (let record of data) {
+                    const month = Number(record.month);
+                    const year = Number(record.year);
+                    const skill = record.question.skill.toString();
+                    const difficulty = record.question.difficulty;
+
+                    if (!app.report_overview[skill]) app.report_overview[skill] = {};
+
+                    if (!app.report_overview[skill][difficulty]) app.report_overview[skill][difficulty] = {};
+
+                    if (!app.report_overview[skill][difficulty][year]) app.report_overview[skill][difficulty][year] = {};
+                        
+                    if (!app.report_overview[skill][difficulty][year][month]) app.report_overview[skill][difficulty][year][month] = true;
+                }
+
+                for (let skill in app.report_overview) {
+                    for (let difficulty in app.report_overview[skill]) {
+                        for (let year in app.report_overview[skill][difficulty]) {
+                            if ($.inArray(Number(year), app.year_list) == -1) {
+                                app.year_list.push(Number(year));
+                            }
+                        }
+                    }
+                }
+
+                app.overview_ready = true;
+            },
+            error: function (err) {
+                if (err) {
+                    window.alert(err.message);
+                }
+                app.no_overview = true;
+            },
+            dataType: 'json',
+        })
     },
     updated: function () {
         app.initialize();
+
+        //uncheck disabled radio buttons
+        if ($("#month-box input:checked[type='radio'][disabled]")[0]) {
+            $("#month-box input:checked[type='radio'][disabled]").prop("checked", false);
+            app.month_checked = '';
+        }
+
+        if ($("#year-box input:checked[type='radio'][disabled]")[0]) {
+            $("#year-box input:checked[type='radio'][disabled]").prop("checked", false);
+            app.year_checked = '';
+        } 
     },
     methods: {
         retrieve: function () {
             app.loading = true;
             app.no_data = false;
 
+            //check before sending request
+            if (app.data[app.skill] &&
+                app.data[app.skill][app.difficulty] &&
+                app.data[app.skill][app.difficulty][app.year_checked] &&
+                app.data[app.skill][app.difficulty][app.year_checked][app.month_checked]) {
+                app.loading = false;
+                return;
+            }
+
+
             const skill_id = app.skill;
             const difficulty = app.difficulty;
+            const year = Number(app.year_checked);
+            const month = Number(app.month_checked);
             $.ajax({
                 type: "POST",
                 url: '/report/get_report_data',
                 data: {
                     skill_id: skill_id,
                     difficulty: difficulty,
+                    year: year,
+                    month: month,
                 },
                 success: function (data) {
-                    app.data[skill_id] = {};
-
                     const grouped_data = {};
                     //group by date
                     for (let report of data) {
@@ -49,14 +122,16 @@ var app = new Vue({
                     for (let grouped_report in grouped_data) {
                         unsorted_data.push(grouped_data[grouped_report]);
                     }
-                    app.data[skill_id][difficulty] = unsorted_data.sort(function (a, b) {
-                        // Turn your strings into dates, and then subtract them
-                        // to get a value that is either negative, positive, or zero.
+
+                    if (!app.data[skill_id]) app.data[skill_id] = {};
+                    if (!app.data[skill_id][difficulty]) app.data[skill_id][difficulty] = {};
+                    if (!app.data[skill_id][difficulty][year]) app.data[skill_id][difficulty][year] = {};
+                    if (!app.data[skill_id][difficulty][year][month]) app.data[skill_id][difficulty][year][month] = unsorted_data.sort(function (a, b) {
                         return a.date - b.date;
                     });
 
                     //calculate values
-                    for (let report of app.data[skill_id][difficulty]) {
+                    for (let report of app.data[skill_id][difficulty][year][month]) {
                         const total = report.questions.length;
 
                         var perfect_count = 0;
@@ -82,9 +157,14 @@ var app = new Vue({
             })
         },
         initialize: function () {
-            if (!app.skill || !app.difficulty || !app.data[app.skill] || !app.data[app.skill][app.difficulty]) return;
+            if (!app.skill ||
+                !app.difficulty ||
+                !app.data[app.skill] ||
+                !app.data[app.skill][app.difficulty] ||
+                !app.data[app.skill][app.difficulty][app.year_checked] ||
+                !app.data[app.skill][app.difficulty][app.year_checked][app.month_checked]) return;
 
-            const chartData = app.data[app.skill][app.difficulty];
+            const chartData = app.data[app.skill][app.difficulty][app.year_checked][app.month_checked];
             const chart = AmCharts.makeChart("chartdiv", {
                 type: "serial",
                 addClassNames: true,
@@ -144,16 +224,42 @@ var app = new Vue({
                 console.log("clicked!");
             }
         },
+        check_month: function (month) {
+            if (!app.skill) return true;
+            if (!app.year_checked) return true;
+            if (app.report_overview[app.skill] &&
+                app.report_overview[app.skill][app.difficulty] &&
+                app.report_overview[app.skill][app.difficulty][app.year_checked] &&
+                app.report_overview[app.skill][app.difficulty][app.year_checked][month])
+                    return false;
+            return true;
+        },
+        check_year: function (year) {
+            if (!app.skill) return true;
+            if (app.report_overview[app.skill] &&
+                app.report_overview[app.skill][app.difficulty] &&
+                app.report_overview[app.skill][app.difficulty][year])
+                return false;
+            return true;
+        },
     },
     watch: {
         skill: function (newVal, oldVal) {
             if (oldVal == "" && newVal != undefined) $("#initial-option").remove();
-            if (!app.difficulty) return;
+            if (!app.difficulty || !app.year_checked || !app.month_checked) return;
             app.retrieve();
         },
         difficulty: function (newVal, oldVal) {
             if (oldVal == "" && newVal != undefined) app.first_request_made;
-            if (!app.skill) return;
+            if (!app.skill || !app.year_checked || !app.month_checked) return;
+            app.retrieve();
+        },
+        year_checked: function () {
+            if (!app.skill || !app.difficulty || !app.month_checked) return;
+            app.retrieve();
+        },
+        month_checked: function () {
+            if (!app.skill || !app.difficulty || !app.year_checked) return;
             app.retrieve();
         },
     },

@@ -4,47 +4,72 @@ block content
   h1= title
   
   div#app
-    div.form-group
-      label(for='skill_input') Skill 
-      select.form-control(name='skill' id='skill_input' v-model='skill')
-        option#initial-option(value="") Choose a skill
-        each skill in skill_list
-          - var dashes = ''; for (var i = 0; i < skill.level * 4; i++) {dashes += "-";}
-          - if(!skill.parent)
-            option(disabled) !{skill.name}
-          - else if (!skill.is_bottom)
-            option(disabled) !{dashes}!{skill.name}
-          - else 
-            option.bottom-level-skill(value=skill._id) !{dashes}!{skill.name}
+    template(v-if="overview_ready")
+      div.form-group
+        label(for='skill_input') Skill 
+        select.form-control(name='skill' id='skill_input' v-model='skill')
+          option#initial-option(value="") Choose a skill
+          each skill in skill_list
+            - var dashes = ''; for (var i = 0; i < skill.level * 4; i++) {dashes += "-";}
+            - if(!skill.parent)
+              option(disabled) !{skill.name}
+            - else if (!skill.is_bottom)
+              option(disabled) !{dashes}!{skill.name}
+            - else 
+              option.bottom-level-skill(value=skill._id) !{dashes}!{skill.name}
 
-    div.form-group
-      lebel(for="difficulty-box") 
-       b Difficulty
-      div#difficulty-box
-        label.radio-inline
-          input#basic(type="radio" name="difficulty" v-model="difficulty" value="basic") 
-          |  Basic
-        label.checkbox-inline
-          input#intermediate(type="radio" name="difficulty" v-model="difficulty" value="intermediate") 
-          |  Intermediate
-        label.checkbox-inline
-          input#advanced(type="radio" name="difficulty" v-model="difficulty" value="advanced") 
-          |  Advanced
+      div.form-group
+        lebel(for="difficulty-box") 
+         b Difficulty
+        div#difficulty-box
+          label.radio-inline
+            input#basic(type="radio" name="difficulty" v-model="difficulty" value="basic") 
+            |  Basic
+          label.radio-inline
+            input#intermediate(type="radio" name="difficulty" v-model="difficulty" value="intermediate") 
+            |  Intermediate
+          label.radio-inline
+            input#advanced(type="radio" name="difficulty" v-model="difficulty" value="advanced") 
+            |  Advanced
 
-    hr
-    template(v-if="first_request_made")
-      template(v-if="loading")
+      div.form-group
+        lebel(for="year-box") 
+         b Year
+        div#year-box
+          label.radio-inline(v-for="(year) in year_list" :for="'year'+year" :disabled-label="check_year(year)")
+            input(type="radio" name="year" v-model="year_checked" :value="year" :id="'year'+year" :disabled="check_year(year)") 
+            |  {{year}}
+
+      div.form-group
+        lebel(for="month-box") 
+         b Month
+        div#month-box
+          label.radio-inline(v-for="(month,index) in month_list" :for="'month'+(index+1)" :disabled-label="check_month(index+1)")
+            input(type="radio" name="month" v-model="month_checked" :value="index+1" :id="'month'+(index+1)" :disabled="check_month(index+1)") 
+            |  {{month}}
+
+      hr
+      div.chart-div
+        template(v-if="first_request_made")
+          template(v-if="loading")
+            p
+              b Loading...
+          template(v-else-if="no_data")
+              p
+                b Currently no data available
+          template(v-else)
+            b Average Score Chart
+            div#chartdiv
+        template(v-else)
+          p 
+            b A chart will show up here once you fill out the form above.
+    template(v-else)
+      template(v-if="no_overview")
+        p
+          b You don't have any report yet. Please finish some exercises first.
+      template(v-else)
         p
           b Loading...
-      template(v-else-if="no_data")
-          p
-            b Currently no data available
-      template(v-else)
-        b Average Score Chart
-        div#chartdiv
-    template(v-else)
-      p 
-        b A chart will show up here once you fill out the form above.
       
 
   script(src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js")

@@ -1,6 +1,7 @@
 var Question = require('../models/question');
 var Skill = require('../models/skill');
 var Report = require('../models/report');
+var ReportDate = require('../models/report_date');
 
 var mongoose = require('mongoose');
 var async = require('async');
@@ -24,9 +25,11 @@ exports.report_get = function (req, res, next) {
         });
 }
 
-exports.report_data_get = function (req, res, next) {
+exports.report_data_post = function (req, res, next) {
     const skill_id = mongoose.Types.ObjectId(req.body.skill_id);
     const difficulty = "" + req.body.difficulty;
+    const year = Number(req.body.year);
+    const month = Number(req.body.month);
 
     async.waterfall([
         function (callback) {
@@ -62,7 +65,14 @@ exports.report_data_get = function (req, res, next) {
             })
         },
         function (question_id_list, callback) {
-            Report.find({ question_id: { $in: question_id_list }, type: "exercise" }, "-user_id -question_id -__v -id -_id")
+            const start_date = new Date(`${year}-${month}-1`);
+            const end_date = new Date(`${year}-${month}-31`);
+
+            Report.find({
+                question_id: { $in: question_id_list },
+                type: "exercise",
+                date: { $gte: start_date, $lte: end_date },
+            }, "-user_id -question_id -__v -id -_id")
                 .exec(function (err, report_list) {
                     if (err) {
                         callback(err, null);
@@ -78,4 +88,23 @@ exports.report_data_get = function (req, res, next) {
             res.json(report_list);
         }
     })
+}
+
+exports.report_overview_post = function (req, res, next) {
+    const user_id = res.locals.user_id;
+
+    ReportDate.find({ user_id: user_id })
+        .populate("question", "_id skill difficulty")
+        .exec(function (err, report_list) {
+            if (err) {
+                next(err);
+            } else if (report_list.length == 0) {
+                next({
+                    message: "Record not found",
+                    status: 404,
+                })
+            } else {
+                res.json(report_list);
+            }
+        })
 }

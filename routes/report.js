@@ -14,6 +14,9 @@ var require_role = require('../utils/router_utils').require_role;
 router.get('/', require_login, report_controller.report_get);
 
 // POST request for retrieving user's report
-router.post('/get_report_data', require_login, report_controller.report_data_get);
+router.post('/get_report_data', require_login, report_controller.report_data_post);
+
+// POST request for retrieving user's report
+router.post('/get_overview_data', require_login, report_controller.report_overview_post);
 
 module.exports = router;
