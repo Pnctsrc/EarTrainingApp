@@ -50,7 +50,7 @@ var app = new Vue({
                 app.overview_ready = true;
             },
             error: function (err) {
-                if (err) {
+                if (err.status != 404) {
                     window.alert(err.message);
                 }
                 app.no_overview = true;

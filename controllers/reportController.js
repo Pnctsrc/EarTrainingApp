@@ -72,6 +72,7 @@ exports.report_data_post = function (req, res, next) {
                 question_id: { $in: question_id_list },
                 type: "exercise",
                 date: { $gte: start_date, $lte: end_date },
+                user_id: res.locals.user_id,
             }, "-user_id -question_id -__v -id -_id")
                 .exec(function (err, report_list) {
                     if (err) {
