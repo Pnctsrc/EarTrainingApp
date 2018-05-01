@@ -327,7 +327,7 @@ exports.delete_session = function (req, res, next) {
                     question: new_report.question_id,
                 }, function (err, record_doc) {
                     if (err) {
-                        callback(err);
+                        callback(err, null);
                     } else if (!record_doc) {
                         const new_record = {
                             user_id: new_report.user_id,
@@ -339,20 +339,20 @@ exports.delete_session = function (req, res, next) {
                         const record = new ReportDate(new_record);
                         record.save(function (err) {
                             if (err) {
-                                callback(err)
+                                callback(err, null)
                             } else {
-                                callback(null);
+                                callback(null, 'done');
                             }
                         })
                     } else {
-                        callback(null);
+                        callback(null, 'done');
                     }
                 })
             } else {
-                callback(null);
+                callback(null, 'done');
             }
         },
-    ], function (err) {
+    ], function (err, done) {
         if (err) {
             return next(err);
         } else {
@@ -671,7 +671,7 @@ exports.question_answer = function (req, res, next) {
                                     question: new_report.question_id,
                                 }, function (err, record_doc) {
                                     if (err) {
-                                        callback(err);
+                                        callback(err, null);
                                     } else if (!record_doc) {
                                         const new_record = {
                                             user_id: new_report.user_id,
@@ -683,20 +683,20 @@ exports.question_answer = function (req, res, next) {
                                         const record = new ReportDate(new_record);
                                         record.save(function (err) {
                                             if (err) {
-                                                callback(err)
+                                                callback(err, null);
                                             } else {
-                                                callback(null);
+                                                callback(null, 'done');
                                             }
                                         })
                                     } else {
-                                        callback(null);
+                                        callback(null, 'done');
                                     }
                                 })
                             } else {
-                                callback(null);
+                                callback(null, 'done');
                             }
                         },
-                    ], function (err) {
+                    ], function (err, done) {
                         if (err) {
                             return next(err);
                         } else {
