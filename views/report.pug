@@ -1,0 +1,57 @@
+extends layout
+
+block content
+  h1= title
+  
+  div#app
+    div.form-group
+      label(for='skill_input') Skill 
+      select.form-control(name='skill' id='skill_input' v-model='skill')
+        option#initial-option(value="") Choose a skill
+        each skill in skill_list
+          - var dashes = ''; for (var i = 0; i < skill.level * 4; i++) {dashes += "-";}
+          - if(!skill.parent)
+            option(disabled) !{skill.name}
+          - else if (!skill.is_bottom)
+            option(disabled) !{dashes}!{skill.name}
+          - else 
+            option.bottom-level-skill(value=skill._id) !{dashes}!{skill.name}
+
+    div.form-group
+      lebel(for="difficulty-box") 
+       b Difficulty
+      div#difficulty-box
+        label.radio-inline
+          input#basic(type="radio" name="difficulty" v-model="difficulty" value="basic") 
+          |  Basic
+        label.checkbox-inline
+          input#intermediate(type="radio" name="difficulty" v-model="difficulty" value="intermediate") 
+          |  Intermediate
+        label.checkbox-inline
+          input#advanced(type="radio" name="difficulty" v-model="difficulty" value="advanced") 
+          |  Advanced
+
+    hr
+    template(v-if="first_request_made")
+      template(v-if="loading")
+        p
+          b Loading...
+      template(v-else-if="no_data")
+          p
+            b Currently no data available
+      template(v-else)
+        b Average Score Chart
+        div#chartdiv
+    template(v-else)
+      p 
+        b A chart will show up here once you fill out the form above.
+      
+
+  script(src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js")
+  script(src="https://www.amcharts.com/lib/3/amcharts.js")
+  script(src="https://www.amcharts.com/lib/3/serial.js")
+  script(src="https://www.amcharts.com/lib/3/themes/light.js")
+  script(src="https://www.amcharts.com/lib/3/plugins/dataloader/dataloader.min.js")
+  script(src="https://www.amcharts.com/lib/3/maps/js/worldLow.js")
+  script(src="/javascripts/report.js")
+  link(rel="stylesheet" type="text/css" href="/stylesheets/report.css")

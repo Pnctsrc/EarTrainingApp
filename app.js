@@ -11,6 +11,7 @@ var routes = require('./routes/index');
 var users = require('./routes/users');
 var catalog = require('./routes/catalog');  //Import routes for "catalog" area of site
 var api = require('./routes/api');
+var report = require('./routes/report');
 
 // Require token and role validation
 var token_validation = require('./utils/router_utils').validate_token;
@@ -49,6 +50,7 @@ app.use('/', routes);
 app.use('/users', users);
 app.use('/catalog', catalog);  // Add catalog routes to middleware chain.
 app.use('/api', api);
+app.use('/report', report);
 
 // catch 404 and forward to error handler
 app.use(function (err, req, res, next) {

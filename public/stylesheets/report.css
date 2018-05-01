@@ -1,0 +1,12 @@
+option.bottom-level-skill {
+    font-weight: bold;
+}
+
+#chartdiv {
+    width: 100%;
+    height: 400px;
+}
+
+.amcharts-graph-line .amcharts-graph-bullet {
+    cursor: pointer;
+}

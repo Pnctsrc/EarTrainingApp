@@ -12,6 +12,7 @@ var upload = multer({
 var skill_controller = require('../controllers/skillController');
 var question_controller = require('../controllers/questionController');
 var option_controller = require('../controllers/optionController');
+var report_controller = require('../controllers/reportController');
 
 //user validations
 var require_login = require('../utils/router_utils').require_login;
