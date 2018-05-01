@@ -64,7 +64,6 @@ exports.skill_list = function (req, res, next) {
                     if (err) {
                         return next(err);
                     } else {
-                        console.log(results)
                         res.render('skill_list', { title: 'Skill List', skill_list: results });
                     }
                 })

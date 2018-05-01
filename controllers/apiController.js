@@ -31,7 +31,7 @@ exports.update_session = function (req, res, next) {
             ExerciseSession.findById(session_id, function (err, session) {
                 const order_set = session.order_set;
                 if (err) {
-                    callback(err, null, null);
+                    callback(err, null, null, null);
                 } else {
                     if (session.user_id.toString() != res.locals.user_id.toString()) {
                         callback({
@@ -68,7 +68,7 @@ exports.update_session = function (req, res, next) {
                             callback({
                                 status: 400,
                                 message: "The order of the questions is not set yet."
-                            }, null);
+                            }, null, null, null);
                             return;
                         }
 
@@ -477,7 +477,7 @@ exports.questions_list = function (req, res, next) {
 function update_report(callback, report, if_perfect, correct_answers, if_max_attempt, if_new) {
     const update_content = {};
     if (report.is_final) {
-        callback(null);
+        callback(null, null);
         return;
     }
 
