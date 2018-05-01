@@ -10,6 +10,13 @@ var fetch_skill_levels = require('../utils/skill_util').fetch_skill_levels;
 
 var sanitizeHtml = require('sanitize-html');
 
+var AWS = require('aws-sdk');
+// Initialize the Amazon Cognito credentials provider
+AWS.config.region = 'us-east-1'; // Region
+AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+    IdentityPoolId: process.env.AWS_IDENTITY_POOL_ID,
+});
+
 // Display detail page for a specific Question.
 exports.question_detail = function (req, res, next) {
     var question_id = mongoose.Types.ObjectId(req.params.id);
@@ -200,6 +207,7 @@ exports.question_create_post = function (req, res, next) {
             //options
             const option_list = [];
             const file_links = [];
+            const upload_list = [];
             var count = 0;
             var correct_count = 0;
             for (var i = 1; i <= 5; i++) {
@@ -225,78 +233,92 @@ exports.question_create_post = function (req, res, next) {
                 } else {
                     const file_type = option_file[0].mimetype.substring(0, 5);
                     const file_extension = '.' + option_file[0].mimetype.substring(6);
-                    const file_name = question_id + i + file_extension;
-
+                    const date = (new Date()).getTime();
+                    const file_name = date + "_temp" + file_extension;
+                    const bucket_name = process.env.AWS_S3_BUCKET_NAME;
+                    let s3_key = '';
                     if (file_type == 'audio') {
-                        if (!fs.existsSync("./public/audio/")) {
-                            fs.mkdirSync("./public/audio/");
-                        }
-
+                        s3_key = "Option_Audio/" + file_name;
                         new_option.category = 'audio';
-                        fs.writeFileSync('./public/audio/' + file_name, option_file[0].buffer);
-                        new_option.audio = '/audio/' + file_name;
-                        file_links.push(function (callback) {
-                            fs.unlink('./public/audio/' + file_name, callback);
-                        });
+                        new_option.audio = process.env.AWS_S3_LINK + s3_key;
                     } else if (file_type == 'image') {
-                        if (!fs.existsSync("./public/pics/")) {
-                            fs.mkdirSync("./public/pics/");
-                        }
-
+                        s3_key = "Option_Images/" + file_name;
                         new_option.category = 'picture';
-                        fs.writeFileSync('./public/pics/' + file_name, option_file[0].buffer);
-                        new_option.picture = '/pics/' + file_name;
-                        file_links.push(function (callback) {
-                            fs.unlink('./public/pics/' + file_name, callback);
-                        });
+                        new_option.picture = process.env.AWS_S3_LINK + s3_key;
                     }
-                }
 
+                    var s3 = new AWS.S3();
+                    file_links.push(function (callback) {
+                        s3.deleteObject({ Key: s3_key }, callback);
+                    });
+
+                    upload_list.push(function (callback) {
+                        s3.upload({
+                            Key: s3_key,
+                            Body: option_file[0].buffer,
+                            ACL: 'public-read',
+                            Bucket: bucket_name,
+                        }, function (err, data) {
+                            if (err) {
+                                callback(err, null);
+                            } else {
+                                callback(null, data);
+                            }
+                        });
+                    })
+                }
+                
                 //create option list
                 var option = new Option(new_option);
                 option_list.push(new Option(new_option));
             }
 
-            if (count < 2) {
-                file_links.push(function (callback) {
-                    Question.remove({ _id: question_id }).exec(callback);
-                })
-                async.parallel(file_links, function (err) {
-                    if (err) return next(err);
-                    res.status(400).send("You must have at least two options for this question.");
-                })
-            } else if (correct_count < 1) {
-                file_links.push(function (callback) {
-                    Question.remove({ _id: question_id }).exec(callback);
-                })
-                async.parallel(file_links, function (err) {
-                    if (err) return next(err);
-                    res.status(400).send("You must have at least 1 correct option.");
-                })
-            } else if (correct_count > 3) {
-                file_links.push(function (callback) {
-                    Question.remove({ _id: question_id }).exec(callback);
-                })
-                async.parallel(file_links, function (err) {
-                    if (err) return next(err);
-                    res.status(400).send("You must have at most 3 correct options.");
-                })
-            } else {
-                //save options
-                Option.insertMany(option_list, function (err, docs) {
-                    if (err) {
-                        file_links.push(function (callback) {
-                            Question.remove({ _id: question_id }).exec(callback);
-                        })
-                        async.parallel(file_links, function (error) {
-                            if (error) return next(error);
-                            return next(err);
-                        })
-                    } else {
-                        res.json(doc.url);
-                    }
-                })
-            }
+            //upload to S3
+            async.parallel(upload_list, function (err) {
+                if (err) return next(err);
+
+                //validation
+                if (count < 2) {
+                    file_links.push(function (callback) {
+                        Question.remove({ _id: question_id }).exec(callback);
+                    })
+                    async.parallel(file_links, function (err) {
+                        if (err) return next(err);
+                        res.status(400).send("You must have at least two options for this question.");
+                    })
+                } else if (correct_count < 1) {
+                    file_links.push(function (callback) {
+                        Question.remove({ _id: question_id }).exec(callback);
+                    })
+                    async.parallel(file_links, function (err) {
+                        if (err) return next(err);
+                        res.status(400).send("You must have at least 1 correct option.");
+                    })
+                } else if (correct_count > 3) {
+                    file_links.push(function (callback) {
+                        Question.remove({ _id: question_id }).exec(callback);
+                    })
+                    async.parallel(file_links, function (err) {
+                        if (err) return next(err);
+                        res.status(400).send("You must have at most 3 correct options.");
+                    })
+                } else {
+                    //save options
+                    Option.insertMany(option_list, function (err, docs) {
+                        if (err) {
+                            file_links.push(function (callback) {
+                                Question.remove({ _id: question_id }).exec(callback);
+                            })
+                            async.parallel(file_links, function (error) {
+                                if (error) return next(error);
+                                return next(err);
+                            })
+                        } else {
+                            res.json(doc.url);
+                        }
+                    })
+                }
+            })
         }
     })
 };
