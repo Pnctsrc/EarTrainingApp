@@ -3,6 +3,7 @@ var Option = require('../models/option');
 var Skill = require('../models/skill');
 var ExerciseSession = require('../models/exercise_session');
 var Report = require('../models/report');
+var ReportDate = require('../models/report_date');
 
 
 var mongoose = require('mongoose');
@@ -107,10 +108,10 @@ exports.update_session = function (req, res, next) {
             Report.findOne({ user_id: user_id, question_id: question_id, date: current_date })
                 .exec(function (err, report) {
                     if (err) {
-                        callback(err, null);
+                        callback(err, null, null);
                     } else if (report) {
                         if (report.is_final) {
-                            callback(null, if_refresh);
+                            callback(null, if_refresh, null);
                             return;
                         }
                         const update_content = { is_final: true };
@@ -124,10 +125,16 @@ exports.update_session = function (req, res, next) {
                         //if before try
                         if (session.current_attempt == 1) update_content.skip_before_try = true;
 
-                        Report.findByIdAndUpdate(report._id, update_content, callback);
+                        Report.findByIdAndUpdate(report._id, update_content, function (err) {
+                            if (err) {
+                                callback(err, null, null);
+                            } else {
+                                callback(null, if_refresh, null);
+                            }
+                        });
                     } else {
                         if (!order_set) {
-                            callback(null, if_refresh);
+                            callback(null, if_refresh, null);
                         } else {
                             const new_report = {
                                 date: current_date,
@@ -148,15 +155,53 @@ exports.update_session = function (req, res, next) {
                             const report = new Report(new_report);
                             report.save(function (err) {
                                 if (err) {
-                                    callback(err, null);
+                                    callback(err, null, null);
                                 } else {
-                                    callback(null, if_refresh);
+                                    callback(null, if_refresh, report);
                                 }
                             });
                         }
                     }
                 })
-        }
+        },
+        function (if_refresh, new_report, callback) {
+            if (new_report) {
+                const current_date = new Date(new_report.date);
+                const year = current_date.getFullYear();
+                const month = current_date.getMonth() + 1;
+
+                ReportDate.findOne({
+                    user_id: new_report.user_id,
+                    year: year,
+                    month: month,
+                    question: new_report.question_id,
+                }, function (err, record_doc) {
+                    if (err) {
+                        callback(err, null);
+                    } else if (!record_doc) {
+                        const new_record = {
+                            user_id: new_report.user_id,
+                            year: year,
+                            month: month,
+                            question: new_report.question_id,
+                        };
+
+                        const record = new ReportDate(new_record);
+                        record.save(function (err) {
+                            if (err) {
+                                callback(err, null)
+                            } else {
+                                callback(null, if_refresh);
+                            }
+                        })
+                    } else {
+                        callback(null, if_refresh);
+                    }
+                })
+            } else {
+                callback(null, if_refresh);
+            }
+        },
     ], function (err, if_refresh) {
         if (err) {
             next(err);
@@ -220,7 +265,7 @@ exports.delete_session = function (req, res, next) {
                         callback(err, null);
                     } else if (report) {
                         if (report.is_final) {
-                            callback(null);
+                            callback(null, null);
                             return;
                         }
                         const update_content = { is_final: true };
@@ -234,7 +279,13 @@ exports.delete_session = function (req, res, next) {
                         //if before try
                         if (session.current_attempt == 1) update_content.skip_before_try = true;
 
-                        Report.findByIdAndUpdate(report._id, update_content, callback);
+                        Report.findByIdAndUpdate(report._id, update_content, function (err) {
+                            if (err) {
+                                callback(err, null);
+                            } else {
+                                callback(null, null);
+                            }
+                        });
                     } else {
                         const new_report = {
                             date: current_date,
@@ -257,12 +308,50 @@ exports.delete_session = function (req, res, next) {
                             if (err) {
                                 callback(err, null);
                             } else {
-                                callback(null);
+                                callback(null, report);
                             }
                         });
                     }
                 })
-        }
+        },
+        function (new_report, callback) {
+            if (new_report) {
+                const current_date = new Date(new_report.date);
+                const year = current_date.getFullYear();
+                const month = current_date.getMonth() + 1;
+
+                ReportDate.findOne({
+                    user_id: new_report.user_id,
+                    year: year,
+                    month: month,
+                    question: new_report.question_id,
+                }, function (err, record_doc) {
+                    if (err) {
+                        callback(err);
+                    } else if (!record_doc) {
+                        const new_record = {
+                            user_id: new_report.user_id,
+                            year: year,
+                            month: month,
+                            question: new_report.question_id,
+                        };
+
+                        const record = new ReportDate(new_record);
+                        record.save(function (err) {
+                            if (err) {
+                                callback(err)
+                            } else {
+                                callback(null);
+                            }
+                        })
+                    } else {
+                        callback(null);
+                    }
+                })
+            } else {
+                callback(null);
+            }
+        },
     ], function (err) {
         if (err) {
             return next(err);
@@ -385,7 +474,7 @@ exports.questions_list = function (req, res, next) {
 };
 
 // Check the answer and feedback of a question
-function update_report(callback, report, if_perfect, correct_answers, if_max_attempt) {
+function update_report(callback, report, if_perfect, correct_answers, if_max_attempt, if_new) {
     const update_content = {};
     if (report.is_final) {
         callback(null);
@@ -410,7 +499,17 @@ function update_report(callback, report, if_perfect, correct_answers, if_max_att
         if (if_perfect || if_max_attempt) update_content.is_final = true;
     }
 
-    Report.findByIdAndUpdate(report._id, update_content, callback);
+    Report.findByIdAndUpdate(report._id, update_content, function (err) {
+        if (err) {
+            callback(err, null);
+        } else {
+            if (if_new) {
+                callback(null, report);
+            } else {
+                callback(null, null);
+            }
+        }
+    });
 }
 
 exports.question_answer = function (req, res, next) {
@@ -528,9 +627,9 @@ exports.question_answer = function (req, res, next) {
                             Report.findOne({ user_id: user_id, question_id: question_id, date: current_date })
                                 .exec(function (err, report) {
                                     if (err) {
-                                        return next(err);
+                                        return callback(err, null);
                                     } else if (report) {
-                                        update_report(callback, report, if_perfect, correct_answers, if_max_attempt);   
+                                        update_report(callback, report, if_perfect, correct_answers, if_max_attempt, false);   
                                     } else {
                                         const new_report = {
                                             date: current_date,
@@ -553,11 +652,49 @@ exports.question_answer = function (req, res, next) {
                                             if (err) {
                                                 callback(err, null);
                                             } else {
-                                                update_report(callback, report, if_perfect, correct_answers); 
+                                                update_report(callback, report, if_perfect, correct_answers, null, true); 
                                             }
                                         });
                                     }
                                 })
+                        },
+                        function (new_report, callback) {
+                            if (new_report) {
+                                const current_date = new Date(new_report.date);
+                                const year = current_date.getFullYear();
+                                const month = current_date.getMonth() + 1;
+
+                                ReportDate.findOne({
+                                    user_id: new_report.user_id,
+                                    year: year,
+                                    month: month,
+                                    question: new_report.question_id,
+                                }, function (err, record_doc) {
+                                    if (err) {
+                                        callback(err);
+                                    } else if (!record_doc) {
+                                        const new_record = {
+                                            user_id: new_report.user_id,
+                                            year: year,
+                                            month: month,
+                                            question: new_report.question_id,
+                                        };
+
+                                        const record = new ReportDate(new_record);
+                                        record.save(function (err) {
+                                            if (err) {
+                                                callback(err)
+                                            } else {
+                                                callback(null);
+                                            }
+                                        })
+                                    } else {
+                                        callback(null);
+                                    }
+                                })
+                            } else {
+                                callback(null);
+                            }
                         },
                     ], function (err) {
                         if (err) {
