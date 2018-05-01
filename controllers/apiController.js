@@ -597,7 +597,7 @@ exports.question_answer = function (req, res, next) {
                                                 callback(err, null);
                                             } else {
                                                 result.if_refresh = true;
-                                                callback(null, null);
+                                                callback(null, session);
                                             }
                                         })
                                     } else {
