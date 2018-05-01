@@ -22,14 +22,14 @@ block content
         lebel(for="difficulty-box") 
          b Difficulty
         div#difficulty-box
-          label.radio-inline
-            input#basic(type="radio" name="difficulty" v-model="difficulty" value="basic") 
+          label.radio-inline(:disabled-label="check_difficulty('basic')")
+            input#basic(type="radio" name="difficulty" v-model="difficulty" value="basic" :disabled="check_difficulty('basic')") 
             |  Basic
-          label.radio-inline
-            input#intermediate(type="radio" name="difficulty" v-model="difficulty" value="intermediate") 
+          label.radio-inline(:disabled-label="check_difficulty('intermediate')")
+            input#intermediate(type="radio" name="difficulty" v-model="difficulty" value="intermediate" :disabled="check_difficulty('intermediate')") 
             |  Intermediate
-          label.radio-inline
-            input#advanced(type="radio" name="difficulty" v-model="difficulty" value="advanced") 
+          label.radio-inline(:disabled-label="check_difficulty('advanced')")
+            input#advanced(type="radio" name="difficulty" v-model="difficulty" value="advanced" :disabled="check_difficulty('advanced')") 
             |  Advanced
 
       div.form-group

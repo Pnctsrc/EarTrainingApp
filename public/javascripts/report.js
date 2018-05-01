@@ -71,6 +71,11 @@ var app = new Vue({
             $("#year-box input:checked[type='radio'][disabled]").prop("checked", false);
             app.year_checked = '';
         } 
+
+        if ($("#difficulty-box input:checked[type='radio'][disabled]")[0]) {
+            $("#difficulty-box input:checked[type='radio'][disabled]").prop("checked", false);
+            app.difficulty = '';
+        } 
     },
     methods: {
         retrieve: function () {
@@ -231,7 +236,7 @@ var app = new Vue({
                 app.report_overview[app.skill][app.difficulty] &&
                 app.report_overview[app.skill][app.difficulty][app.year_checked] &&
                 app.report_overview[app.skill][app.difficulty][app.year_checked][month])
-                    return false;
+                return false;
             return true;
         },
         check_year: function (year) {
@@ -239,6 +244,13 @@ var app = new Vue({
             if (app.report_overview[app.skill] &&
                 app.report_overview[app.skill][app.difficulty] &&
                 app.report_overview[app.skill][app.difficulty][year])
+                return false;
+            return true;
+        },
+        check_difficulty: function (difficulty) {
+            if (!app.skill) return true;
+            if (app.report_overview[app.skill] &&
+                app.report_overview[app.skill][difficulty])
                 return false;
             return true;
         },

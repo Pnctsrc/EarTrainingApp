@@ -32,6 +32,14 @@ div#month-box label[disabled-label=true]:hover {
     cursor: not-allowed;
 }
 
+div#difficulty-box label[disabled-label=true] {
+    color: #ccc;
+}
+
+div#difficulty-box label[disabled-label=true]:hover {
+    cursor: not-allowed;
+}
+
 .amcharts-graph-g1 .amcharts-graph-stroke {
     stroke-dasharray: 500%;
     -webkit-animation: css-effect 10s ease-out forwards;
