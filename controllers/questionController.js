@@ -203,11 +203,11 @@ exports.question_create_post = function (req, res, next) {
             callback(err, null);
         } else {
             const question_id = doc._id;
-
             //options
             const option_list = [];
             const file_links = [];
             const upload_list = [];
+            const date = (new Date()).getTime();
             var count = 0;
             var correct_count = 0;
             for (var i = 1; i <= 5; i++) {
@@ -233,8 +233,7 @@ exports.question_create_post = function (req, res, next) {
                 } else {
                     const file_type = option_file[0].mimetype.substring(0, 5);
                     const file_extension = '.' + option_file[0].mimetype.substring(6);
-                    const date = (new Date()).getTime();
-                    const file_name = date + "_temp" + file_extension;
+                    const file_name = date + (i + "_temp") + file_extension;
                     const bucket_name = process.env.AWS_S3_BUCKET_NAME;
                     let s3_key = '';
                     if (file_type == 'audio') {
@@ -247,13 +246,13 @@ exports.question_create_post = function (req, res, next) {
                         new_option.picture = process.env.AWS_S3_LINK + s3_key;
                     }
 
-                    var s3 = new AWS.S3();
                     file_links.push(function (callback) {
                         s3.deleteObject({ Key: s3_key }, callback);
                     });
 
                     upload_list.push(function (callback) {
-                        s3.upload({
+                        var s3 = new AWS.S3();
+                        s3.putObject({
                             Key: s3_key,
                             Body: option_file[0].buffer,
                             ACL: 'public-read',
