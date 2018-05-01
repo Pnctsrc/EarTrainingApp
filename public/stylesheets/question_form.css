@@ -27,3 +27,7 @@ span.remove-button{
 span.remove-button:hover {
     cursor: pointer;
 }
+
+div.preview-box img {
+    height: 80px;
+}

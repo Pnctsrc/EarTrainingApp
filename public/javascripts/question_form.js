@@ -181,12 +181,43 @@ var app = new Vue({
             } else {
                 app.options[option_index].content = event.target.files;
             }
+
+            if (event.target.files && event.target.files[0]) {
+                const type = event.target.files[0].type.substring(0, 5);
+                if (type == "image") {
+                    var reader = new FileReader();
+                    reader.onload = function (e) {
+                        $('#option_image_' + option_index).attr('src', e.target.result);
+                    }
+                    reader.readAsDataURL(event.target.files[0]);
+                } else if (type == "audio") {
+                    var sound = $('#option_audio_' + option_index)[0];
+                    sound.src = URL.createObjectURL(event.target.files[0]);
+                    sound.onend = function (e) {
+                        URL.revokeObjectURL(this.src);
+                    }
+                }
+            }
         },
         check_correct: function (event) {
             if ($(event.target).is(":checked")) {
                 const option_index = $(event.target.parentNode.parentNode.parentNode.parentNode).index();
                 app.options[option_index].feedback = "";
             }
+        },
+        check_audio: function (index) {
+            if (!app.options[index].content) return false;
+            return app.options[index].content[0].type.substring(0, 5) == "audio";
+        },
+        check_image: function (index) {
+            if (!app.options[index].content) return false;
+            return app.options[index].content[0].type.substring(0, 5) == "image";
+        },
+        delete_file_input: function (index) {
+            app.options[index].content = "";
+            $("#option_file_" + index).val("");
+            $('#option_image_' + index).attr('src', "");
+            $('#option_audio_' + index).attr('src', "");
         }
     },
 })

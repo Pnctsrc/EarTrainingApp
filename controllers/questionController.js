@@ -274,7 +274,7 @@ exports.question_create_post = function (req, res, next) {
             }
 
             //upload to S3
-            async.parallel(upload_list, function (err) {
+            async.series(upload_list, function (err) {
                 if (err) return next(err);
 
                 //validation

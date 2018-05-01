@@ -47,6 +47,14 @@ block content
                   input.form-control(type='text' placeholder='Put option text here...' :name="'option_text_'+index" :id="'option_text_'+index" v-model="option.content")
           
             template(v-else)
+              div.form-group.preview-box
+                label.control-label.col-sm-2 Preview
+                div.col-sm-10
+                  audio(preload="auto" autobuffer controls :id="'option_audio_'+index" v-show="check_audio(index)")
+                    source
+                  img(:id="'option_image_'+index" src="" v-show="check_image(index)")
+                  span.glyphicon.glyphicon-remove.remove-button(v-on:click="delete_file_input(index)" v-show="check_image(index) || check_audio(index)")
+
               div.form-group
                 label.control-label.col-sm-2(:for="'option_file_'+index" ) Audio/Picture
                 div.col-sm-10
