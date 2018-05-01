@@ -26,11 +26,51 @@ exports.index = function (req, res) {
 
 // Display list of all Skills.
 exports.skill_list = function (req, res, next) {
-    Skill.find({ parent: { $exists: false } }, 'name parent description')
+    Skill.find({}, 'name parent description')
+        .populate("sub_skills")
         .exec(function (err, skill_list) {
             if (err) { return next(err); }
 
-            res.render('skill_list', { title: 'Skill List', skill_list: skill_list });
+            if (skill_list.length != 0) {
+                var sorted_list = [];
+                for (let skill of skill_list) {
+                    if (!skill.parent) {
+                        fetch_skill_levels(skill, 0, skill_list, sorted_list);
+                    }
+                }
+
+                var max_level = 0;
+                for (let skill of sorted_list) {
+                    if (skill.level > max_level) max_level = skill.level;
+                }
+
+                const populate_depth = {
+                    path: 'parent',
+                };
+                function deep_populate(current_depth, n) {
+                    n++;
+                    if (n <= max_level) {
+                        current_depth.populate = {
+                            path: "parent",
+                        }
+
+                        deep_populate(current_depth.populate, n);
+                    }
+                }
+
+                deep_populate(populate_depth, 0);
+
+                Skill.populate(sorted_list, populate_depth, function (err, results) {
+                    if (err) {
+                        return next(err);
+                    } else {
+                        console.log(results)
+                        res.render('skill_list', { title: 'Skill List', skill_list: results });
+                    }
+                })
+            } else {
+                res.render('skill_list', { title: 'Skill List', skill_list: skill_list });
+            }
         });
 };
 

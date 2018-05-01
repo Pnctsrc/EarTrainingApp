@@ -5,7 +5,7 @@ block content
   
   ul
   each skill in skill_list
-    li
+    li(style="margin-left:"+(skill.level*20)+"px" )
       a(href=skill.url) #{skill.name} 
       p.skill_description #{skill.description}
 
