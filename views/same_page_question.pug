@@ -34,7 +34,7 @@ block content
                   | {{option.text}}
 
               template(v-else-if="option.category === 'audio'")
-                audio(preload="auto" autobuffer controls)
+                audio(preload="auto" autobuffer controls :key="option.audio")
                     source(:src="option.audio")
                 template(v-if="option.if_correct !== undefined")
                   template(v-if="option.if_correct")
