@@ -103,7 +103,7 @@ exports.update_session = function (req, res, next) {
             const current_index = session.current_index;
             const question_id = session.questions[current_index];
             const user_id = res.locals.user_id;
-            const current_date = (new Date).toISOString().split('T')[0];
+            const current_date = (new Date).toISOString().split('T')[0] + "T04:00:00.000Z";
 
             Report.findOne({ user_id: user_id, question_id: question_id, date: current_date })
                 .exec(function (err, report) {
@@ -257,7 +257,7 @@ exports.delete_session = function (req, res, next) {
             const current_index = session.current_index;
             const question_id = session.questions[current_index];
             const user_id = res.locals.user_id;
-            const current_date = (new Date).toISOString().split('T')[0];
+            const current_date = (new Date).toISOString().split('T')[0] + "T04:00:00.000Z";
 
             Report.findOne({ user_id: user_id, question_id: question_id, date: current_date })
                 .exec(function (err, report) {
@@ -623,7 +623,7 @@ exports.question_answer = function (req, res, next) {
                         },
                         function (session, callback) {
                             //find the report
-                            const current_date = (new Date).toISOString().split('T')[0];
+                            const current_date = (new Date).toISOString().split('T')[0] +"T04:00:00.000Z";
                             Report.findOne({ user_id: user_id, question_id: question_id, date: current_date })
                                 .exec(function (err, report) {
                                     if (err) {
