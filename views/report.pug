@@ -50,7 +50,7 @@ block content
 
       hr
       div.chart-div
-        template(v-if="first_request_made")
+        template(v-if="check_request()")
           template(v-if="loading")
             p
               b Loading...

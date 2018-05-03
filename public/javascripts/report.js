@@ -6,7 +6,6 @@ var app = new Vue({
         skill: '',
         difficulty: '',
         no_data: false,
-        first_request_made: false,
         report_overview: {},
         overview_ready: false,
         no_overview: false,
@@ -59,8 +58,6 @@ var app = new Vue({
         })
     },
     updated: function () {
-        app.initialize();
-
         //uncheck disabled radio buttons
         if ($("#month-box input:checked[type='radio'][disabled]")[0]) {
             $("#month-box input:checked[type='radio'][disabled]").prop("checked", false);
@@ -76,6 +73,8 @@ var app = new Vue({
             $("#difficulty-box input:checked[type='radio'][disabled]").prop("checked", false);
             app.difficulty = '';
         } 
+
+        app.initialize();
     },
     methods: {
         retrieve: function () {
@@ -148,7 +147,6 @@ var app = new Vue({
                     }
 
                     app.loading = false;
-                    if (!app.first_request_made) app.first_request_made = true;
                 },
                 error: function (err) {
                     if (err.status != 404) {
@@ -156,7 +154,6 @@ var app = new Vue({
                     }
                     app.no_data = true;
                     app.loading = false;
-                    if (!app.first_request_made) app.first_request_made = true;
                 },
                 dataType: 'json',
             })
@@ -210,8 +207,10 @@ var app = new Vue({
                 valueAxes: [{
                     id: 'v1',
                     labelFunction: function (value, valueText) {
-                        return Number(valueText) * 100 + "%";
+                        if (value > 1 || value < 0) return "";
+                        else return Number(valueText) * 100 + "%";
                     },
+                    maximum: 1.1,
                 }]
             });
 
@@ -254,24 +253,26 @@ var app = new Vue({
                 return false;
             return true;
         },
+        check_request: function () {
+            return app.skill && app.difficulty && app.year_checked && app.month_checked;
+        },
     },
     watch: {
         skill: function (newVal, oldVal) {
             if (oldVal == "" && newVal != undefined) $("#initial-option").remove();
-            if (!app.difficulty || !app.year_checked || !app.month_checked) return;
+            if (!app.difficulty || !app.year_checked || !app.month_checked || newVal == "") return;
             app.retrieve();
         },
         difficulty: function (newVal, oldVal) {
-            if (oldVal == "" && newVal != undefined) app.first_request_made;
-            if (!app.skill || !app.year_checked || !app.month_checked) return;
+            if (!app.skill || !app.year_checked || !app.month_checked || newVal == "") return;
             app.retrieve();
         },
-        year_checked: function () {
-            if (!app.skill || !app.difficulty || !app.month_checked) return;
+        year_checked: function (newVal, oldVal) {
+            if (!app.skill || !app.difficulty || !app.month_checked || newVal == "") return;
             app.retrieve();
         },
-        month_checked: function () {
-            if (!app.skill || !app.difficulty || !app.year_checked) return;
+        month_checked: function (newVal, oldVal) {
+            if (!app.skill || !app.difficulty || !app.year_checked || newVal == "") return;
             app.retrieve();
         },
     },
