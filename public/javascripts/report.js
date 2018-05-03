@@ -184,7 +184,7 @@ var app = new Vue({
                     useNegativeColorIfDown: true,
                     balloonFunction: function (graphDataItem, graph) {
                         var value = graphDataItem.values.value;
-                        return `${graphDataItem.category.toDateString().substring(4)}<br><b>Average score: ${value * 100 + "%"}<b>`;
+                        return `${graphDataItem.category.toDateString().substring(4)}<br><b>Average score: ${(value * 100).toFixed(1) + "%"}<b>`;
                     },
                     bullet: "round",
                     bulletBorderAlpha: 1,
