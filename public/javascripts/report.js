@@ -11,6 +11,7 @@ var app = new Vue({
         no_overview: false,
         year_list: [],
         month_list: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        month_full_list: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
         retrieved_data: {},
         month_checked: '',
         year_checked: '',
@@ -171,6 +172,12 @@ var app = new Vue({
                 type: "serial",
                 addClassNames: true,
                 dataProvider: chartData,
+                titles: [
+                    {
+                        size: 15,
+                        text: `Average score for ${app.month_full_list[app.month_checked - 1]} ${app.year_checked}`,
+                    }
+                ],
                 chartScrollbar: {
                     autoGridCount: true,
                     graph: "g1",
