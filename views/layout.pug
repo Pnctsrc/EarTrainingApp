@@ -10,8 +10,6 @@ html(lang='en')
     script(src='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js')
     link(rel='stylesheet', href='/stylesheets/style.css')
     link(rel='stylesheet', href='/stylesheets/layout.css')
-    script(src="/javascripts/js-cookie.js")
-    script(src="/javascripts/layout.js")
   body
     nav.navbar.navbar-default
       div.container-fluid
@@ -42,11 +40,8 @@ html(lang='en')
 
           ul.nav.navbar-nav.navbar-right
             if(!logged_in)
-              li.before-login.login-box
-                a.login-button Log in
-
-              li.during-login.login-box
-                a Verifying...
+              li.login-box
+                a.login-button(href='/users/auth/google') Log in
 
             else 
               li.dropdown.after-login.login-box
@@ -61,7 +56,7 @@ html(lang='en')
                     a(href='/report/') Report
                   li.divider(role="separator")
                   li
-                    a.logout-button Log out
+                    a.logout-button(href='/users/logout') Log out
                 
 
     div(class='container-fluid')

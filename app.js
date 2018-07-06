@@ -6,6 +6,7 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var session = require('express-session');
 
 var routes = require('./routes/index');
 var users = require('./routes/users');
@@ -13,9 +14,19 @@ var catalog = require('./routes/catalog');  //Import routes for "catalog" area o
 var api = require('./routes/api');
 var report = require('./routes/report');
 
-// Require token and role validation
-var token_validation = require('./utils/router_utils').validate_token;
-var role_validation = require('./utils/router_utils').check_role;
+//passport-google-login
+var passport = require('passport');
+var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
+var passport_google_verify = require('./utils/router_utils').passport_google_verify;
+var passport_google_check_login = require('./utils/router_utils').passport_google_check_login;
+
+passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: process.env.CALLBACK_URL
+},
+    passport_google_verify
+));
 
 var app = express();
 
@@ -38,13 +49,20 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(session({
+    secret: 'secret secret',
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: process.env.IS_SECURE }
+}));
+app.use(passport.initialize());
+app.use(passport.session());
 
 // enable ssl redirect
 app.use(sslRedirect());
 
-//handle token and role
-app.use(token_validation);
-app.use(role_validation);
+// check login status
+app.use(passport_google_check_login);
 
 app.use('/', routes);
 app.use('/users', users);
