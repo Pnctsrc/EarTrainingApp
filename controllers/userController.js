@@ -3,6 +3,8 @@ var User = require('../models/user');
 //async library
 const async = require('async');
 
+/* Removed because Google one-tap sign-in is not available
+
 // Authenticate the user
 exports.autenticate = function (req, res, next) {
     const token = res.locals.validated_token;
@@ -35,10 +37,11 @@ exports.autenticate = function (req, res, next) {
         }
     })
 };
+*/
 
 // Get user profile
 exports.user_profile_get = function (req, res, next) {
-    User.findOne({ user_id: res.locals.validated_token.payload.sub })
+    User.findOne({ user_id: req.user.user_id })
         .exec(function (err, user_doc) {
             if (err) {
                 return next(err);

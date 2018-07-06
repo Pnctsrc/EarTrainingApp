@@ -1,8 +1,81 @@
 var User = require('../models/user');
 
-//google auth
-const { OAuth2Client } = require('google-auth-library');
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+//passport.js Google verification
+exports.passport_google_verify = function (accessToken, refreshToken, profile, done) {
+    process.nextTick(function () {
+        const user_id = profile.id;
+
+        User.findOne({ user_id: user_id }).exec(function (err, user_doc) {
+            if (err) {
+                return done(err);
+            } else if (!user_doc) {
+                //create a new user profile if it is not in the database
+                const user_profile = {
+                    name: profile.displayName,
+                    email: profile.emails[0].value,
+                    picture: profile.image.url,
+                    user_id: profile.id,
+                    token: accessToken,
+                    role: "student",
+                }
+
+                var new_user = new User(user_profile);
+                new_user.save(function (err) {
+                    if (err) {
+                        return done(err);
+                    } else {
+                        done(null, new_user);
+                    }
+                })
+            } else {
+                return done(null, user_doc);
+            }
+        })
+    }); 
+}
+
+exports.passport_google_check_login = function (req, res, next) {
+    if (req.user) {
+        res.locals.logged_in = true;
+        res.locals.if_instructor = req.user.role == "instructor";
+    } 
+
+    next();
+}
+
+exports.require_login = function (req, res, next) {
+    if (req.isAuthenticated()) {
+        next();
+    } else {
+        return next({
+            message: "Unauthorized",
+            status: 401,
+        });
+    }
+}
+
+exports.require_role = function (req, res, next) {
+    if (res.locals.validated_token) {
+        User.findOne({ user_id: res.locals.validated_token.payload.sub })
+            .exec(function (err, user_doc) {
+                if (err) {
+                    return next(err);
+                } else if (!user_doc) {
+                    res.locals.if_instructor = false;
+                    res.locals.user_id = '';
+                } else {
+                    res.locals.if_instructor = user_doc.role == "instructor";
+                    res.locals.user_id = user_doc._id;
+                }
+
+                next();
+            })
+    } else {
+        next();
+    }
+}
+
+/* Removed because Google one-tap sign-in is not available
 
 async function verify_function(google_token, req, res, next) {
     const ticket = await client.verifyIdToken({
@@ -79,3 +152,4 @@ exports.require_role = function (req, res, next) {
         next();
     }
 }
+*/

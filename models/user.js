@@ -29,7 +29,11 @@ var UserSchema = new Schema(
             type: String,
             required: true,
             enum: ['student', 'admin', 'instructor'],
-        }
+        },
+        token: {
+            type: String,
+            required: true,
+        },
     }
 );
 

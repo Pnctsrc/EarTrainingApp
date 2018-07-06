@@ -2,10 +2,6 @@ a.login-button:hover, a.logout-button:hover {
     cursor: pointer;
 }
 
-li.during-login {
-    display: none;
-}
-
 a.not-available:hover {
     cursor: not-allowed !important;
 }
