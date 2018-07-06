@@ -10,9 +10,7 @@ block content
         select.form-control(name='skill' id='skill_input')
           each skill in skill_list
             - var dashes = ''; for (var i = 0; i < skill.level * 4; i++) {dashes += "-";}
-            - if(!skill.parent)
-              option(value=skill._id disabled) !{skill.name}
-            - else if (!skill.is_bottom)
+            - if (!skill.is_bottom)
               option(value=skill._id disabled) !{dashes}!{skill.name}
             - else 
               option.bottom-level-skill(value=skill._id) !{dashes}!{skill.name}
