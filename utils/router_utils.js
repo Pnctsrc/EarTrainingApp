@@ -38,6 +38,7 @@ exports.passport_google_check_login = function (req, res, next) {
     if (req.user) {
         res.locals.logged_in = true;
         res.locals.if_instructor = req.user.role == "instructor";
+        res.locals.user_id = req.user._id;
     } 
 
     next();
