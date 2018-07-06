@@ -49,11 +49,12 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.set('trust proxy', 1) // trust first proxy
 app.use(session({
     secret: 'secret secret',
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: process.env.IS_SECURE }
+    cookie: { secure: process.env.IS_SECURE == "true"? true : false}
 }));
 app.use(passport.initialize());
 app.use(passport.session());
