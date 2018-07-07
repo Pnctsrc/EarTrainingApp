@@ -1,20 +1,26 @@
-exports.fetch_skill_levels = function fetch_levels(current_level, level, skill_list, result) {
-	//update level
-	current_level.level = level;
-	level++;
-	result.push(current_level);
+exports.fetch_skill_levels = function(current_skill, level, skill_list, result) {
+    //build a map between skill id and skill doc
+    const skill_id_map = {}
+    for (var skill of skill_list) {
+        skill_id_map[skill._id] = skill;
+    }
 
-	if (current_level.sub_skills.length !== 0) {
-		for (let sub_skill of current_level.sub_skills) {
-			for (let skill of skill_list) {
-                if (sub_skill._id.toString() == skill._id.toString()) {
-					fetch_levels(skill, level, skill_list, result);
-				}
-			}
-		}
-    } else {
-        current_level.is_bottom = true;
-	}
+    visit(current_skill, level);
+
+    function visit(current_level, level) {
+        //update level
+        current_level.level = level;
+        level++;
+        result.push(current_level);
+
+        if (current_level.sub_skills.length !== 0) {
+            for (let sub_skill of current_level.sub_skills) {
+                visit(skill_id_map[sub_skill._id], level);
+            }
+        } else {
+            current_level.is_bottom = true;
+        }
+    }
 }
 
 function if_ancestor_parent(doc_id, data) {
