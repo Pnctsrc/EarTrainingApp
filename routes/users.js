@@ -36,12 +36,17 @@ router.post('/authenticate', user_controller.autenticate);
 router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
 // GET request after the authentication
-router.get('/auth/google/callback', passport.authenticate('google', { successRedirect: '/', failureRedirect: '/' }));
+router.get('/auth/google/callback', passport.authenticate('google', { successRedirect: '/users/auth/google/success', failureRedirect: '/' }));
+
+// GET request for redirecting after success 
+router.get('/auth/google/success', (req, res, next) => {
+    res.render('google_auth_success');
+});
 
 // GET request to log out
 router.get('/logout', function (req, res) {
     req.logout();
-    res.redirect('/');
+    res.redirect(req.headers.referer);
 });
 
 // GET request for user profile. 
