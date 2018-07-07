@@ -10,6 +10,7 @@ html(lang='en')
     script(src='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js')
     link(rel='stylesheet', href='/stylesheets/style.css')
     link(rel='stylesheet', href='/stylesheets/layout.css')
+    script(src="/javascripts/layout.js")
   body
     nav.navbar.navbar-default
       div.container-fluid
@@ -41,7 +42,7 @@ html(lang='en')
           ul.nav.navbar-nav.navbar-right
             if(!logged_in)
               li.login-box
-                a.login-button(href='/users/auth/google') Log in
+                a.login-button Log in
 
             else 
               li.dropdown.after-login.login-box
