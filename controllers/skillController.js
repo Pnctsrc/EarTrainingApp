@@ -192,21 +192,21 @@ exports.skill_create_post = function (req, res, next) {
         });
     })
 
-    //save the separate skill
-    if (sep_skill_name) {
-        if (if_replace_parent) {
-            //modify the parent of the affected questions
-            functions.push(function (skill_doc, arg, callback) {
-                Question.updateMany({ parent: skill_doc.prent }, { parent: skill_doc._id }, function (err) {
-                    if (err) {
-                        callback(err, null);
-                    } else {
-                        callback(null, skill_doc, null);
-                    }
-                })
+    //handle parent
+    if (if_replace_parent) {
+        //modify the parent of the affected questions
+        functions.push(function (skill_doc, arg, callback) {
+            Question.updateMany({ skill: skill_parent }, { skill: skill_doc._id }, function (err) {
+                if (err) {
+                    callback(err, null);
+                } else {
+                    callback(null, skill_doc, null);
+                }
             })
-        } else {
-            //find the skill to which the affected questions belongs
+        })
+    } else {
+        if (sep_skill_name && sep_skill_description) {
+            //find the skill to which the affected questions belong
             functions.push(function (skill_doc, arg, callback) {
                 Skill.findById(skill_doc.parent, "requirements", function (err, original_parent_doc) {
                     if (err) {
@@ -247,7 +247,7 @@ exports.skill_create_post = function (req, res, next) {
                     }
                 })
             })
-        }
+        } 
     }
 
     //handle children
