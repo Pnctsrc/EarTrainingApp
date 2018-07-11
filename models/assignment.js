@@ -45,10 +45,10 @@ var AssignmentSchema = new Schema(
 );
 
 // Virtual for question's URL
-QuestionSchema
+AssignmentSchema
     .virtual('url')
     .get(function () {
-        return '/class/assignment' + this._id;
+        return '/class/assignment/' + this._id;
     });
 
 //Export model

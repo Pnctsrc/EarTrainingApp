@@ -27,7 +27,7 @@ var ClassSchema = new Schema(
 );
 
 // Virtual for question's URL
-QuestionSchema
+ClassSchema
     .virtual('url')
     .get(function () {
         return '/class/' + this._id;
