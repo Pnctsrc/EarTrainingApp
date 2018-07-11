@@ -13,6 +13,7 @@ var users = require('./routes/users');
 var catalog = require('./routes/catalog');  //Import routes for "catalog" area of site
 var api = require('./routes/api');
 var report = require('./routes/report');
+var class_route = require('./routes/class');
 
 //passport-google-login
 var passport = require('passport');
@@ -70,6 +71,7 @@ app.use('/users', users);
 app.use('/catalog', catalog);  // Add catalog routes to middleware chain.
 app.use('/api', api);
 app.use('/report', report);
+app.use('/class', class_route);
 
 // catch 404 and forward to error handler
 app.use(function (err, req, res, next) {
