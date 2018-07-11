@@ -10,24 +10,24 @@
     "name": "Pnctsrc"
   },
   "dependencies": {
-    "async": "^2.6.0",
-    "aws-sdk": "^2.223.1",
-    "body-parser": "^1.15.0",
+    "async": "^2.6.1",
+    "aws-sdk": "^2.272.1",
+    "body-parser": "^1.18.3",
     "cookie-parser": "^1.4.0",
     "debug": "^2.6.9",
-    "express": "^4.14.0",
+    "express": "^4.16.3",
     "express-session": "^1.15.6",
-    "express-validator": "^5.1.1",
-    "google-auth-library": "^1.3.2",
+    "express-validator": "^5.2.0",
+    "google-auth-library": "^1.6.1",
     "heroku-ssl-redirect": "0.0.4",
-    "mongoose": "^5.0.4",
+    "mongoose": "^5.2.2",
     "morgan": "^1.7.0",
-    "multer": "^1.3.0",
-    "nodemon": "^1.17.5",
+    "multer": "^1.3.1",
+    "nodemon": "^1.18.0",
     "passport": "^0.4.0",
     "passport-google-oauth": "^1.0.0",
-    "pug": "^2.0.0-rc.4",
+    "pug": "^2.0.3",
     "sanitize-html": "^1.18.2",
-    "serve-favicon": "^2.3.0"
+    "serve-favicon": "^2.5.0"
   }
 }
