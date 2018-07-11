@@ -108,7 +108,15 @@ exports.class_edit_get = function (req, res, next) {
 }
 
 exports.class_get = function (req, res, next) {
-    res.json({ err: "Not implemented." });
+    const class_id = mongoose.Types.ObjectId(req.params.id);
+
+    Class.findById(class_id, function (err, class_doc) {
+        if (err) {
+            next(err);
+        } else {
+            res.render("class_detail", { class_data: class_doc });
+        }
+    })
 }
 
 exports.class_assignment_list_get = function (req, res, next) {
