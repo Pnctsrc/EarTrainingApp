@@ -41,7 +41,23 @@ exports.class_enrollment_post = function (req, res) {
 }
 
 exports.class_create_post = function (req, res, next) {
-    res.json({ err: "Not implemented." });
+    const class_name = req.body["class-name"];
+    const class_description = req.body["class-description"];
+
+    const new_class = new Class({
+        name: class_name,
+        description: class_description,
+        creator: res.locals.user_id,
+        createdAt: new Date(),
+    })
+
+    new_class.save(function (err) {
+        if (err) {
+            next(err);
+        } else {
+            res.redirect(new_class.url);
+        }
+    })
 }
 
 exports.class_edit_post = function (req, res, next) {
@@ -84,7 +100,7 @@ exports.class_list_get = function (req, res, next) {
 }
 
 exports.class_create_get = function (req, res, next) {
-    res.json({ err: "Not implemented." });
+    res.render("class_form", {title: "Create a new class"})
 }
 
 exports.class_edit_get = function (req, res, next) {

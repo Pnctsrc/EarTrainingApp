@@ -1,0 +1,17 @@
+extends layout
+
+block content
+  h1= title
+  
+  form.create-question-form(method='POST' onsubmit="return validateForm()")
+    div.form-group
+      label(for='class-name') Name 
+      input.form-control(type='text' placeholder='Name of the class' name='class-name' id='class-name' v-model="class_name")
+
+    div.form-group
+      label(for='class-description') Desciption 
+      textarea.form-control(rows='4' name='class-description' id='class-description' placeholder="Description of the class" v-model="class_description")
+
+    button.btn.btn-primary.submit-button(type='submit') Submit
+
+  script(src="/javascripts/class_form.js")
