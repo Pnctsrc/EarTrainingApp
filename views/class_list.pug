@@ -1,0 +1,30 @@
+extends layout
+
+block content
+  script(src="/javascripts/class_list.js")
+
+  h1= title
+  
+  button.enrollment-button.btn.btn-primary Enroll
+
+  ul
+  each class_doc in class_list
+    li
+      a(href=class_doc.url) #{class_doc.name} 
+      p.class-description #{class_doc.description}
+
+  else
+    li You're not currently enrolled in any class.
+
+  div.enrollment-panel.modal.fade(tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false")
+    div.modal-dialog(role="document")
+      div.modal-content
+        div.modal-header
+          h4.modal-title Enroll in a Class
+        div.modal-body
+          div.form-group
+            label(for="enrollment_input") Enter the class id
+            input#enrollment-input.form-control(type="text")
+        div.modal-footer
+          button.enrollment-close-button.btn.btn-default(data-dismiss="modal") Close
+          button.enrollment-submit-button.btn.btn-primary Enroll
