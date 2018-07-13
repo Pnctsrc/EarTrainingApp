@@ -40,7 +40,14 @@ var AssignmentSchema = new Schema(
             type: Schema.ObjectId,
             ref: 'Class',
             required: true,
-        }
+        },
+        due_date: {
+            type: Date,
+            required: true
+        },
+        post_date: {
+            type: Date
+        },
     },
 );
 

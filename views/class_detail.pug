@@ -8,3 +8,14 @@ block content
   p 
     b Class description
   p #{class_data.description}
+
+  hr
+  p
+   b Class assignments
+  
+  if assignment_list.length != 0
+    each assignment in assignment_list
+      a(href=assignment.url) #{assignment.name}
+      p Post date: #{assignment.post_date} Due date: #{assignment.due_date}
+  else
+    p This class has no assignments yet.

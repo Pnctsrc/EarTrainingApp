@@ -8,13 +8,27 @@ block content
   button.enrollment-button.btn.btn-primary Enroll
 
   ul
-  each class_doc in class_list
-    li
-      a(href=class_doc.url) #{class_doc.name} 
-      p.class-description #{class_doc.description}
-
+  if class_list.length != 0
+    each class_doc in class_list
+      li
+        a(href=class_doc.url) #{class_doc.name} 
+        p.class-description #{class_doc.description}
   else
     li You're not currently enrolled in any class.
+
+  if is_instructor
+    hr
+    p 
+      b My Classes
+
+    ul
+    if my_class_list.length != 0
+      each class_doc in my_class_list
+        li
+          a(href=class_doc.url) #{class_doc.name} 
+          p.class-description #{class_doc.description}
+    else
+      li You haven't created any class yet.
 
   div.enrollment-panel.modal.fade(tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false")
     div.modal-dialog(role="document")

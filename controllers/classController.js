@@ -1,6 +1,7 @@
 var Question = require('../models/question');
 var Skill = require('../models/skill');
 var Class = require('../models/class');
+var Assignment = require('../models/assignment');
 var Enrollment = require('../models/enrollment');
 
 var mongoose = require('mongoose');
@@ -94,7 +95,28 @@ exports.class_list_get = function (req, res, next) {
         if (err) {
             next(err);
         } else {
-            res.render('class_list', { title: "Class list", class_list: class_list });
+            const is_instructor = res.locals.if_instructor;
+
+            if (is_instructor) {
+                Class.find({ creator: res.locals.user_id }, 'name description', function (err, my_class_list) {
+                    if (err) {
+                        next(err);
+                    } else {
+                        res.render('class_list', {
+                            title: "Class list",
+                            class_list: class_list,
+                            is_instructor: is_instructor,
+                            my_class_list: my_class_list,
+                        });
+                    }
+                })
+            } else {
+                res.render('class_list', {
+                    title: "Class list",
+                    class_list: class_list,
+                    is_instructor: is_instructor
+                });
+            }
         }
     })
 }
@@ -110,12 +132,27 @@ exports.class_edit_get = function (req, res, next) {
 exports.class_get = function (req, res, next) {
     const class_id = mongoose.Types.ObjectId(req.params.id);
 
-    Class.findById(class_id, function (err, class_doc) {
-        if (err) {
-            next(err);
-        } else {
-            res.render("class_detail", { class_data: class_doc });
-        }
+    async.parallel({
+        class_doc: function (callback) {
+            Class.findById(class_id, function (err, class_doc) {
+                if (err) {
+                    callback(err, null);
+                } else {
+                    callback(null, class_doc)
+                }
+            })
+        },
+        assignment_list: function (callback) {
+            Assignment.find({ class: class_id }, '-creator', function (err, assignment_list) {
+                if (err) {
+                    callback(err, null);
+                } else {
+                    callback(null, assignment_list);
+                }
+            })
+        },
+    }, function (err, results) {
+        res.render("class_detail", { class_data: results.class_doc, assignment_list: results.assignment_list });
     })
 }
 
