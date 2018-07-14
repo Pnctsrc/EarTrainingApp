@@ -3,32 +3,38 @@ extends layout
 block content
   script(src="/javascripts/class_list.js")
 
-  h1= title
-  
-  button.enrollment-button.btn.btn-primary Enroll
+  div.header
+    div.button-div
+      button.enrollment-button.btn.btn-primary.pull-right Enroll
+    h1= title
+  hr(style="margin-top:0;")
 
-  ul
-  if class_list.length != 0
-    each class_doc in class_list
-      li
-        a(href=class_doc.url) #{class_doc.name} 
-        p.class-description #{class_doc.description}
-  else
-    li You're not currently enrolled in any class.
-
-  if is_instructor
-    hr
+  div.content
     p 
-      b My Classes
-
+      b Classes I take
+    
     ul
-    if my_class_list.length != 0
-      each class_doc in my_class_list
+    if class_list.length != 0
+      each class_doc in class_list
         li
           a(href=class_doc.url) #{class_doc.name} 
           p.class-description #{class_doc.description}
     else
-      li You haven't created any class yet.
+       li You're not currently enrolled in any class.
+  
+    if is_instructor
+      hr
+      p 
+        b Classes I teach
+
+      ul
+      if my_class_list.length != 0
+        each class_doc in my_class_list
+          li
+            a(href=class_doc.url) #{class_doc.name} 
+            p.class-description #{class_doc.description}
+      else
+        li You haven't created any class yet.
 
   div.enrollment-panel.modal.fade(tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false")
     div.modal-dialog(role="document")
