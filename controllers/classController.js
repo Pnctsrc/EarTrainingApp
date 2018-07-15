@@ -160,6 +160,22 @@ exports.class_assignment_list_get = function (req, res, next) {
     res.json({ err: "Not implemented." });
 }
 
+exports.class_assignment_create_get = function (req, res, next) {
+    res.json({ err: "Not implemented." });
+}
+
+exports.class_assignment_create_post = function (req, res, next) {
+    res.json({ err: "Not implemented." });
+}
+
+exports.class_assignment_edit_get = function (req, res, next) {
+    res.json({ err: "Not implemented." });
+}
+
+exports.class_assignment_edit_post = function (req, res, next) {
+    res.json({ err: "Not implemented." });
+}
+
 exports.class_assignment_get = function (req, res, next) {
     res.json({ err: "Not implemented." });
 }

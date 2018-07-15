@@ -39,6 +39,18 @@ router.get('/:id', require_login, class_controller.class_get);
 // GET request for the list of assignments of a class
 router.get('/:id/assignments', require_login, class_controller.class_assignment_list_get);
 
+// GET request for creating a new assignment
+router.get('/:id/assignment/create', require_login, class_controller.class_assignment_create_get);
+
+// POST request for creating a new assignment
+router.post('/:id/assignment/create', require_login, class_controller.class_assignment_create_post);
+
+// GET request for editing an assignment
+router.get('/:id/assignment/edit', require_login, class_controller.class_assignment_edit_get);
+
+// POST request for editing an assignment
+router.post('/:id/assignment/edit', require_login, class_controller.class_assignment_edit_post);
+
 // GET request for a class assignment
 router.get('/:class_id/assignment/:assignment_id', require_login, class_controller.class_assignment_get);
 
