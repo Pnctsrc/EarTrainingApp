@@ -1,21 +1,39 @@
 extends layout
 
 block content 
-  h1 Class
-    |  - #{class_data.name}
-
+  div.class-header
+    h1 Class
+      |  - #{class_data.name}
   hr
-  p 
-    b Class description
-  p #{class_data.description}
 
+  div.class-description
+    p 
+      b Class description
+    p #{class_data.description}
   hr
-  p
-   b Class assignments
+
+  div.class-assignment
+    p
+     b Class assignments
   
-  if assignment_list.length != 0
-    each assignment in assignment_list
-      a(href=assignment.url) #{assignment.name}
-      p Post date: #{assignment.post_date} Due date: #{assignment.due_date}
-  else
-    p This class has no assignments yet.
+    if assignment_list.length != 0
+      each assignment in assignment_list
+        a(href=assignment.url) #{assignment.name}
+        p Post date: #{assignment.post_date} Due date: #{assignment.due_date}
+    else
+      p This class has no assignments yet.
+  
+  if if_instructor
+    hr
+    div.instructor-buttons
+      p
+        b Class management
+
+      div.btn-toolbar(role='group' aria-label='...')
+        div.btn-group.class-info(role='group' aria-label='...')   
+          button.btn.btn-default.student-list(type='button') Student list
+          button.btn.btn-default.class-overview(type='button') Class overview
+
+        div.btn-group.class-modification(role='group' aria-label='...')
+          button.btn.btn-default.edit-class(type='button') Edit class
+          button.btn.btn-default.new-assignment(type='button') New assignment
