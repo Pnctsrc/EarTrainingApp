@@ -9,6 +9,10 @@ var TagSchema = new Schema(
             required: true,
             min: 1,
         },
+        count: {
+            type: Number,
+            required: true,
+        }
     },
 );
 

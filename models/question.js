@@ -30,6 +30,10 @@ var QuestionSchema = new Schema(
             ref: 'User',
             required: true,
         },
+        tags: {
+            type: [Schema.ObjectId],
+            ref: 'Tag',
+        },
     },
     {
         toJSON: {

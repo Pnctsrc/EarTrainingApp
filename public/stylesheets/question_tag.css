@@ -1,0 +1,45 @@
+div.question_tag {
+    padding: 6px 12px;
+}
+
+div.tag-list-wrapper, ul.tag-list {
+    overflow: hidden;
+    margin: 0px;
+    padding: 0px;
+    list-style: none;
+}
+
+input.tag-inputbox {
+    border: 0px;
+    width: 180px;
+    height: 30px;
+}
+
+input.tag-inputbox:focus {
+    outline: 0px;
+}
+
+div.tag-item {
+    border-bottom: 1px solid black;
+    padding: 5px 9px 5px 11px;
+}
+
+i.tag-remove:hover {
+    cursor: pointer;
+}
+
+p.tag-text {
+    float: left;
+    margin: 0px;
+}
+
+li.list-item-wrapper {
+    float: left;
+    margin-left: 5px;
+    margin-bottom: 5px;
+}
+
+i.tag-remove {
+    padding-left: 5px;
+    font-weight: normal;
+}

@@ -25,14 +25,24 @@ $(document).ready(function () {
             },
         }
     });
+
+    $('.tag-inputbox').keyup(function (event) {
+        var code = event.keyCode || event.which;
+        if (code == 13) { 
+            const tag = $(".tag-inputbox").val();
+            app.tags.push({
+                text: tag,
+            })
+            $(".tag-inputbox").val("");
+        }
+    })
 })
 
 var app = new Vue({
     el: '#app',
     data: {
         options: [],
-    },
-    created: function () {
+        tags: [],
     },
     methods: {
         submit: function (event) {
@@ -124,6 +134,7 @@ var app = new Vue({
             data.append("skill", $("#skill_input").val());
             data.append("difficulty", $("#difficulty").val());
             data.append("attempts", $("#attempts").val());
+            data.append("tags", JSON.stringify(app.tags));
 
             $.ajax({
                 type: "POST",
@@ -139,6 +150,7 @@ var app = new Vue({
                 },
                 error: function (err) {
                     window.alert(err.message);
+                    console.log(err);
                     $("button.submit-button").removeAttr("disabled", false);
                     $("button.submit-button")[0].innerText = "Submit";
                 },
@@ -218,6 +230,9 @@ var app = new Vue({
             $("#option_file_" + index).val("");
             $('#option_image_' + index).attr('src', "");
             $('#option_audio_' + index).attr('src', "");
-        }
+        },
+        delete_tag: function (index) {
+            app.tags.splice(index, 1);
+        },
     },
 })
