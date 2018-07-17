@@ -22,6 +22,9 @@ router.post('/create', require_login, require_role, class_controller.class_creat
 // POST request for modifying a class
 router.post('/:id/edit', require_login, require_role, class_controller.class_edit_post);
 
+// POST request for skill tags
+router.post('/skill/tags', require_login, require_role, class_controller.class_skill_tags_post)
+
 /// CLASS ROUTES ///
 
 // GET request for list of enrolled class

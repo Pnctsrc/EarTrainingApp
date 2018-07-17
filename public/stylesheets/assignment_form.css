@@ -1,0 +1,147 @@
+div.tag-box {
+    padding: 6px 12px;
+}
+
+div.tag-list-wrapper, ul.tag-list {
+    overflow: hidden;
+    margin: 0px;
+    padding: 0px;
+    list-style: none;
+}
+
+input.tag-inputbox {
+    border: 0px;
+    width: 180px;
+    height: 30px;
+}
+
+input.tag-inputbox:focus {
+    outline: 0px;
+}
+
+div.tag-item {
+    border-bottom: 1px solid black;
+    padding: 5px 9px 5px 11px;
+}
+
+div.tag-item:hover {
+    cursor: pointer;
+}
+
+p.tag-text {
+    float: left;
+    margin: 0px;
+}
+
+li.list-item-wrapper {
+    float: left;
+    margin-left: 5px;
+    margin-bottom: 5px;
+}
+
+i.tag-remove {
+    padding-left: 5px;
+    font-weight: normal;
+}
+
+div.due {
+    overflow: hidden;
+}
+
+div.due-date {
+    padding-left: 0px;
+}
+
+div.add-skill {
+    display: inline-block;
+    margin-left: 8px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 2px;
+}
+
+div.add-skill:hover {
+    cursor: pointer;
+}
+
+p.skill-content-header {
+    display: inline-block;
+}
+
+option.bottom-level-skill {
+    font-weight: bold;
+}
+
+.ui.label {
+    display: inline-block;
+    line-height: 1;
+    vertical-align: baseline;
+    margin: 0 .14285714em;
+    background-color: #e8e8e8;
+    background-image: none;
+    padding: .5833em .833em;
+    color: rgba(0,0,0,.6);
+    text-transform: none;
+    font-weight: 700;
+    border: 0 solid transparent;
+    border-radius: .28571429rem;
+    -webkit-transition: background .1s ease;
+    transition: background .1s ease;
+}
+
+.ui.label:hover {
+    background-color: #e0e0e0;
+    border-color: #e0e0e0;
+    background-image: none;
+    color: rgba(0,0,0,.8);
+}
+
+.ui.label > .delete.icon {
+    cursor: pointer;
+    margin-right: 0;
+    margin-left: .5em;
+    font-size: .92857143em;
+    opacity: .5;
+    -webkit-transition: background .1s ease;
+    transition: background .1s ease;
+}
+
+.ui.label > .delete.icon:hover {
+    opacity: 1;
+}
+
+i.icon {
+    display: inline-block;
+    opacity: 1;
+    margin: 0 .25rem 0 0;
+    width: 1.18em;
+    height: 1em;
+    font-family: "Font Awesome 5 Free";
+    font-style: normal;
+    font-weight: 900;
+    text-decoration: inherit;
+    text-align: center;
+    speak: none;
+    font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    color: rgba(0,0,0,.6);
+}
+
+i.icon.delete:before {
+    content: "\f00d";
+}
+
+i.icon:before {
+    background: 0 0 !important;
+}
+
+.ui.dropdown .menu > .item {
+    font-size: inherit;
+}
+
+span.remove-button {
+    vertical-align: text-top;
+}

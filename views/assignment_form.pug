@@ -1,0 +1,73 @@
+extends layout
+
+block extraHead
+  link(rel="stylesheet" type="text/css" href="/stylesheets/dropdown.min.css")
+  link(rel="stylesheet" type="text/css" href="/stylesheets/transition.min.css")
+  link(rel="stylesheet" type="text/css" href="/stylesheets/assignment_form.css")
+  script(src='/javascripts/dropdown.min.js')
+  script(src='/javascripts/transition.min.js')
+  script(src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js")
+
+block content
+  h1= title
+
+  div#app
+    form.create-assignment-form(method='POST' onsubmit="return validateForm()")
+      div.form-group
+        label(for='assignment_name') Name 
+        input.form-control(type='text' placeholder='Name of the skill' name='skill_name' id='skill_name' v-model="skill_name")
+
+      div.form-group
+        label(for='skill_description') Desciption (optional)
+        textarea.form-control(rows='4' name='skill_description' id='skill_description' placeholder="Description of the skill" v-model="skill_description")
+
+      div.form-group.due
+        label(for='due') Due date
+        div#due
+          div.col-sm-4.due-date
+            input.form-control(type='date' placeholder='Enter the date' name='assignment_due_date' id='assignment_due_date' v-model="assignment_due_date")
+          div.col-sm-4
+            input.form-control(type='time' placeholder='Enter the time' name='assignment_due_time' id='assignment_due_time' v-model="assignment_due_time")
+
+      div.skill-content
+        p.skill-content-header
+          b Skills 
+          span.glyphicon.glyphicon-question-sign(tabindex='0', role='button' data-toggle='popover' data-trigger='hover' title='Skills' data-content='Choose skills to include in this assignment. You can also limit the number of questions by specifying tags for a skill.')
+          div.add-skill(v-on:click="push_skill")
+            span.glyphicon.glyphicon-plus 
+            |  add a skill
+          
+
+        template
+          div.skill-list
+            div.skill-box(v-for='(skill, index) in skills')
+              label(:for="'skill_group_'+index" ) Skill {{index + 1}} 
+              span.glyphicon.glyphicon-remove.remove-button(v-on:click="delete_skill")
+
+              div.form-horizontal
+                div.form-group.preview-box
+                  label.control-label.col-sm-2 Skill
+                  div.col-sm-10
+                    select.form-control(:name="'skill_input_'+index" :id="'skill_input_'+index" v-on:change="update_tags(index)")
+                      option.default-option(value="") Choose a skill
+                      each skill in skill_list
+                        - var dashes = ''; for (var i = 0; i < skill.level * 4; i++) {dashes += "-";}
+                        - if (!skill.is_bottom)
+                          option(value=skill._id disabled) !{dashes}!{skill.name}
+                        - else 
+                          option.bottom-level-skill(value=skill._id) !{dashes}!{skill.name}
+
+                div.form-group
+                  label.control-label.col-sm-2(:for="'skill_tags_'+index" ) Tags (optional)
+                  div.col-sm-10(:id="'skill_tags_div_'+index")
+                    select.ui.fluid.search.dropdown.tag-list.disabled(:name="'skill_tags_'+index" :id="'skill_tags_'+index" multiple="")
+
+                div.form-group
+                  div.col-sm-offset-2.col-sm-10
+                    div.checkbox
+                      label
+                        input.if-instructor-only(type="checkbox" :name="'if_instructor_only_'+index") 
+                        | Include questions created only by me 
+    
+      button.btn.btn-primary.submit-button(type='submit') Submit
+  script(src='/javascripts/assignment_form.js')

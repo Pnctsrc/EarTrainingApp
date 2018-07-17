@@ -3,9 +3,12 @@ var Skill = require('../models/skill');
 var Class = require('../models/class');
 var Assignment = require('../models/assignment');
 var Enrollment = require('../models/enrollment');
+var Tag = require('../models/tag');
 
 var mongoose = require('mongoose');
 var async = require('async');
+
+var fetch_skill_levels = require('../utils/skill_util').fetch_skill_levels;
 
 exports.class_enrollment_get = function (req, res, next) {
     res.json({ err: "Not implemented." });
@@ -63,6 +66,48 @@ exports.class_create_post = function (req, res, next) {
 
 exports.class_edit_post = function (req, res, next) {
     res.json({ err: "Not implemented." });
+}
+
+exports.class_skill_tags_post = function (req, res) {
+    const skill_id = mongoose.Types.ObjectId(req.body.skill_id);
+
+    async.waterfall([
+        function (callback) {
+            Skill.findById(skill_id, function (err, doc) {
+                if (err) {
+                    callback(err, null);
+                } else {
+                    if (!doc) {
+                        callback({
+                            status: 400,
+                            message: "Skill not found."
+                        }, null)
+                    } else {
+                        callback(null, doc);
+                    }
+                }
+            })
+        },
+        function (skill_doc, callback) {
+            Question.find({ skill: skill_doc._id }, 'tags')
+                .populate('tags', 'name')
+                .exec(function (err, question_list) {
+                    if (err) {
+                        callback(err, null);
+                    } else {
+                        callback(null, question_list);
+                    }
+                })
+        },
+    ],
+    function (err, result) {
+        if (err) {
+            res.status(err.status);
+            res.json(err);
+        } else {
+            res.json({ tags: result });
+        }
+    })
 }
 
 exports.class_list_get = function (req, res, next) {
@@ -161,7 +206,20 @@ exports.class_assignment_list_get = function (req, res, next) {
 }
 
 exports.class_assignment_create_get = function (req, res, next) {
-    res.json({ err: "Not implemented." });
+    Skill.find({}, 'name parent description')
+        .populate("sub_skills")
+        .exec(function (err, skill_list) {
+            if (err) { return next(err); }
+            var sorted_list = [];
+
+            for (let skill of skill_list) {
+                if (!skill.parent) {
+                    fetch_skill_levels(skill, 0, skill_list, sorted_list);
+                }
+            }
+
+            res.render("assignment_form", { title: "Create a new assignment", skill_list: sorted_list })
+        });
 }
 
 exports.class_assignment_create_post = function (req, res, next) {
