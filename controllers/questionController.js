@@ -202,6 +202,7 @@ exports.question_create_post = function (req, res, next) {
     const option_list = [];
     const file_links = [];
     const upload_list = [];
+    const question_tag_list = [];
     var new_tags = [];
     var count = 0;
     var correct_count = 0;
@@ -338,7 +339,18 @@ exports.question_create_post = function (req, res, next) {
                             })
                         }
 
-                        async.parallel(tag_function_list, callback);
+                        async.parallel(tag_function_list, function (err) {
+                            if (err) {
+                                callback(err, null);
+                            } else {
+                                //save id list
+                                for (var tag of tag_list) {
+                                    question_tag_list.push(tag._id);
+                                }
+
+                                callback(null);
+                            }
+                        });
                     } else {
                         new_tags = tag_names;
                         callback(null);
@@ -358,11 +370,25 @@ exports.question_create_post = function (req, res, next) {
                     new_tag_list.push(new_tag);
                 }
 
-                Tag.insertMany(new_tag_list, callback);
+                Tag.insertMany(new_tag_list, function (err, docs) {
+                    if (err) {
+                        callback(err, null);
+                    } else {
+                        //save id list
+                        for (var tag of docs) {
+                            question_tag_list.push(tag._id);
+                        }
+
+                        callback(null);
+                    }
+                });
             } else {
                 callback(null);
             }    
         },
+        function (callback) {//update question doc
+            Question.update({ _id: question_doc._id }, { $set: { tags: question_tag_list } }, callback);
+        }
     ], function (err, result) {
         if (err) {
             file_links.push(function (callback) {
