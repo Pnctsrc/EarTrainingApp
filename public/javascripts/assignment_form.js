@@ -80,24 +80,34 @@ var app = new Vue({
     },
     methods: {
         update_dropdown: function () {
-            //update mutiple selections
-            for (var i = 0; i < app.skills.length; i++) {
-                const skill_content = app.skills[i];
+            app.function_list.push(function () {
+                //update mutiple selections
+                for (var i = 0; i < app.skills.length; i++) {
+                    const skill_content = app.skills[i];
 
-                //update menu
-                if (app.skill_tags_map[skill_content.skill]) {
-                    $("#skill_tags_" + i).dropdown("change values", app.skill_tags_map[skill_content.skill]);
-                } else {
-                    $("#skill_tags_" + i).dropdown("change values", []);
-                }
+                    //update menu
+                    if (app.skill_tags_map[skill_content.skill]) {
+                        $("#skill_tags_" + i).dropdown("change values", app.skill_tags_map[skill_content.skill]);
+                    } else {
+                        $("#skill_tags_" + i).dropdown("change values", []);
+                    }
 
-                //update selection
-                if (skill_content.tags.length != 0) {
-                    $("#skill_tags_" + i).dropdown("set selected", skill_content.tags);
-                } else {
-                    $("#skill_tags_" + i).dropdown("clear");
+                    //update selection
+                    if (skill_content.tags.length != 0) {
+                        $("#skill_tags_" + i).dropdown("set selected", skill_content.tags);
+                    } else {
+                        $("#skill_tags_" + i).dropdown("clear");
+                    }
+
+                    //set disabled
+                    const $current_tags_dropdown = $("#skill_tags_" + i);
+                    if ($("#skill_input_" + i).val()) {
+                        $($current_tags_dropdown).removeClass("disabled");
+                    } else {
+                        $($current_tags_dropdown).addClass("disabled");
+                    }
                 }
-            }
+            })
         },
         dashes: function (level) {
             var dashes = '';
@@ -130,7 +140,7 @@ var app = new Vue({
             app.update_dropdown();
         },
         delete_skill: function (delete_index) {
-            const skill_id = app.skills[delete_index].skill;
+            const delete_skill_id = app.skills[delete_index].skill;
             app.skills.splice(delete_index, 1);
             app.update_skill_id(delete_index, null);
 
@@ -141,9 +151,15 @@ var app = new Vue({
                 if (index > delete_index) new_old_input_values[index - 1] = app.old_input_values[index];
                 if (index < delete_index) new_old_input_values[index] = app.old_input_values[index];
             }
+            for (var skill_id in app.skill_index_map) {
+                const current_index = app.skill_index_map[skill_id];
+                if (current_index > delete_index) {
+                    app.skill_index_map[skill_id]--;
+                }
+            }
 
             app.old_input_values = new_old_input_values;
-            app.skill_index_map[skill_id] = -1;
+            app.skill_index_map[delete_skill_id] = -1;
 
             app.update_dropdown();
         },
